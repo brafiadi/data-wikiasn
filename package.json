@@ -1,0 +1,15 @@
+{
+  "name": "data-wikiasn",
+  "scripts": {
+    "dev": "bun run --hot src/index.ts",
+    "format": "bun x @biomejs/biome format --write ./src"
+  },
+  "dependencies": {
+    "hono": "^4.6.13",
+    "prisma": "^6.0.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.9.4",
+    "@types/bun": "latest"
+  }
+}

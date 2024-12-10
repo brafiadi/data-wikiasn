@@ -6,9 +6,28 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["typedSql"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model provinsi {
+  id      Int     @id @default(autoincrement())
+  nama_provinsi   String  
+}
+
+model hari_libur {
+  id     Int   @id @default(autoincrement())
+  nama   String
+  tanggal_mulai DateTime @db.Date
+  tanggal_akhir DateTime @db.Date
+  tahun   Int
+  bulan   Int
+  deskripsi String?
+  kategori  String @default("Libur Nasional")
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
 }

@@ -6,9 +6,9 @@ const app = new Hono();
 app.use("*", cors());
 app.route("/hari-libur", hariLiburRoute);
 
-// app.get("/", (c) => {
-// 	return c.text("Hello Hono!");
-// });
+app.get("/", (c) => {
+	return c.text("Hello Hono!");
+});
 
 export default {
 	port: process.env.PORT,

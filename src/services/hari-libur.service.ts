@@ -18,8 +18,8 @@ export class HariLiburService {
 			const hariLibur = await this.prisma.$queryRawUnsafe(query, ...params);
 			return hariLibur;
 		} catch (error) {
-			console.error("Gagal mengambil daftar libur:", error);
-			throw new Error("Gagal mengambil daftar libur");
+			console.error("Gagal mengambil data:", error);
+			throw new Error("Gagal mengambil data");
 		}
 	}
 }

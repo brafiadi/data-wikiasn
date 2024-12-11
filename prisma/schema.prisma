@@ -14,6 +14,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model menu {
+  id      Int     @id @default(autoincrement())
+  menu    String
+  deskripsi String?
+  link    String
+}
+
 model provinsi {
   id      Int     @id @default(autoincrement())
   nama_provinsi   String  

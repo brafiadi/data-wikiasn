@@ -1,4 +1,4 @@
-import { Context } from "hono";
+import type { Context } from "hono";
 import { HariLiburService } from "../services/hari-libur.service";
 
 export class HariLiburController {
@@ -11,7 +11,7 @@ export class HariLiburController {
 	async listHariLibur(c: Context) {
 		try {
 			const paramTahun = c.req.query("tahun");
-			const tahun = paramTahun ? parseInt(paramTahun) : undefined;
+			const tahun = paramTahun ? Number.parseInt(paramTahun) : undefined;
 
 			const listHariLibur = await this.hariLiburService.getListHariLibur(tahun);
 

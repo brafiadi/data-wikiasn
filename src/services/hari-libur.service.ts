@@ -1,7 +1,9 @@
 import { PrismaClient } from "@prisma/client";
 
-function toISOString(date) {
-  return date.toISOString().slice(0, 10);
+interface HariLibur {
+	nama: string;
+	tanggal_mulai: Date;
+	tanggal_akhir: Date;
 }
 
 export class HariLiburService {
@@ -34,9 +36,7 @@ export class HariLiburService {
 		const today = new Date();
 		const dayOfWeek = today.getDay();
 
-
-
-		const holidayData = await this.prisma.$queryRaw`
+		const holidayData = await this.prisma.$queryRaw<HariLibur[]>`
 								SELECT hl.nama, hl.tanggal_mulai, hl.tanggal_akhir 
 								FROM hari_libur hl
 								WHERE hl.tanggal_mulai <= CURRENT_DATE AND hl.tanggal_akhir >= CURRENT_DATE
@@ -46,7 +46,7 @@ export class HariLiburService {
 		let holidayName = "";
 
 		if (isHoliday) {
-			holidayName = holidayData[0].nama_libur;
+			holidayName = holidayData[0].nama;
 		} else if (dayOfWeek === 0 || dayOfWeek === 6) {
 			isHoliday = true;
 			holidayName = `Hari ${dayOfWeek === 0 ? "Minggu" : "Sabtu"}`;

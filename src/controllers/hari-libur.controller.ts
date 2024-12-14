@@ -32,4 +32,26 @@ export class HariLiburController {
 			);
 		}
 	}
+
+	async liburHariIni(c: Context) {
+		try {
+			const liburHariIni = await this.hariLiburService.getLiburHariIni();
+
+			return c.json({
+				success: true,
+				data: liburHariIni,
+			});
+		} catch (error) {
+			return c.json(
+				{
+					success: false,
+					message:
+						error instanceof Error
+							? error.message
+							: "Terjadi kesalahan tidak dikenal",
+				},
+				500,
+			);
+		}
+	}
 }

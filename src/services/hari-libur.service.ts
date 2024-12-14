@@ -1,5 +1,11 @@
 import { PrismaClient } from "@prisma/client";
 
+interface HariLibur {
+	nama: string;
+	tanggal_mulai: Date;
+	tanggal_akhir: Date;
+}
+
 export class HariLiburService {
 	private prisma: PrismaClient;
 
@@ -21,5 +27,34 @@ export class HariLiburService {
 			console.error("Gagal mengambil data:", error);
 			throw new Error("Gagal mengambil data");
 		}
+	}
+
+	async getLiburHariIni(): Promise<{
+		isHoliday: boolean;
+		holidayName: string;
+	}> {
+		const today = new Date();
+		const dayOfWeek = today.getDay();
+
+		const holidayData = await this.prisma.$queryRaw<HariLibur[]>`
+								SELECT hl.nama, hl.tanggal_mulai, hl.tanggal_akhir 
+								FROM hari_libur hl
+								WHERE hl.tanggal_mulai <= CURRENT_DATE AND hl.tanggal_akhir >= CURRENT_DATE
+							`;
+
+		let isHoliday = holidayData.length > 0;
+		let holidayName = "";
+
+		if (isHoliday) {
+			holidayName = holidayData[0].nama;
+		} else if (dayOfWeek === 0 || dayOfWeek === 6) {
+			isHoliday = true;
+			holidayName = `Hari ${dayOfWeek === 0 ? "Minggu" : "Sabtu"}`;
+		}
+
+		return {
+			isHoliday,
+			holidayName,
+		};
 	}
 }

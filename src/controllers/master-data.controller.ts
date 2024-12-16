@@ -28,4 +28,25 @@ export class MasterDataController {
 			);
 		}
 	}
+
+	async listInstansi(c: Context) {
+		try {
+			const listInstansi = await this.masterDataService.getListInstansi();
+			return c.json({
+				success: true,
+				data: listInstansi,
+			});
+		} catch (error) {
+			return c.json(
+				{
+					success: false,
+					message:
+						error instanceof Error
+							? error.message
+							: "Terjadi kesalahan tidak dikenal",
+				},
+				500,
+			);
+		}
+	}
 }

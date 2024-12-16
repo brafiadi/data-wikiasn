@@ -18,4 +18,16 @@ export class MasterDataService {
 			throw new Error("Gagal mengambil data");
 		}
 	}
+
+	async getListInstansi() {
+		const query = "SELECT * FROM instansi";
+
+		try {
+			const data = await this.prisma.$queryRawUnsafe(query);
+			return data;
+		} catch (error) {
+			console.error("Gagal mengambil data:", error);
+			throw new Error("Gagal mengambil data");
+		}
+	}
 }

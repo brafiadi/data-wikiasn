@@ -30,31 +30,39 @@ export class HariLiburService {
 	}
 
 	async getLiburHariIni(): Promise<{
-		isHoliday: boolean;
-		holidayName: string;
+		libur: boolean;
+		hari_libur: string;
+		hari_ini: string;
+		pesan: string
 	}> {
 		const today = new Date();
 		const dayOfWeek = today.getDay();
 
-		const holidayData = await this.prisma.$queryRaw<HariLibur[]>`
+		const hariLiburData = await this.prisma.$queryRaw<HariLibur[]>`
 								SELECT hl.nama, hl.tanggal_mulai, hl.tanggal_akhir 
 								FROM hari_libur hl
 								WHERE hl.tanggal_mulai <= CURRENT_DATE AND hl.tanggal_akhir >= CURRENT_DATE
 							`;
 
-		let isHoliday = holidayData.length > 0;
-		let holidayName = "";
+		let libur = hariLiburData.length > 0;
+		let hari_libur = "";
+		let pesan = "Selamat bekerja dan menyelesaikan tugas hari ini"
+		let hari_ini = today.toLocaleDateString("id", { weekday:"long", year:"numeric", month:"long", day:"numeric"})
 
-		if (isHoliday) {
-			holidayName = holidayData[0].nama;
+		if (libur) {
+			hari_libur = hariLiburData[0].nama;
+			pesan = `Selamat berlibur dan semoga harimu menyenangkan`
 		} else if (dayOfWeek === 0 || dayOfWeek === 6) {
-			isHoliday = true;
-			holidayName = `Hari ${dayOfWeek === 0 ? "Minggu" : "Sabtu"}`;
+			libur = true;
+			hari_libur = `Hari ${dayOfWeek === 0 ? "Minggu" : "Sabtu"}`;
+			pesan = `Selamat berakhir pekan dan semoga harimu menyenangkan`
 		}
 
 		return {
-			isHoliday,
-			holidayName,
+			libur,
+			hari_libur,
+			hari_ini,
+			pesan
 		};
 	}
 }

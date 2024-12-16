@@ -38,3 +38,44 @@ model hari_libur {
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
 }
+
+model instansi {
+  id     Int   @id @default(autoincrement())
+  nama   String
+  jenis jenis_instansi
+  profil profil_instansi?
+}
+
+model profil_instansi {
+  id     Int   @id @default(autoincrement())
+  instansi_id Int @unique
+  instansi  instansi @relation(fields: [instansi_id], references: [id])
+  tunjangan_kinerja Int
+  peraturan_tunjangan_kinerja peraturan @relation(fields: [tunjangan_kinerja], references: [id])
+}
+
+enum jenis_instansi {
+  negara  @map("Negara")
+  kementerian @map("Kementerian")
+  lembaga @map("Lembaga")
+  pemda  @map("Pemerintah Daerah")
+}
+
+model peraturan {
+  id     Int   @id @default(autoincrement())
+  nama  String
+  tautan  String
+  tahun String
+  berlaku Boolean
+  kata_kunci  String[]
+  profil_instansi  profil_instansi[]
+  tunjangan_kinerja tunjangan_kinerja[]
+}
+
+model tunjangan_kinerja {
+  id     Int   @id @default(autoincrement())
+  kelas_jabatan String
+  besaran Int
+  peraturan_id Int
+  dasar_hukum peraturan @relation(fields: [peraturan_id], references: [id])
+}

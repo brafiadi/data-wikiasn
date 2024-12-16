@@ -1,15 +1,12 @@
 import type { Context } from "hono";
 import { TunjanganKinerjaService } from "../services/tunjangan-kinerja.service";
 
-
 export class TunjanganKinerjaController {
 	private tunjanganKinerjaService: TunjanganKinerjaService;
 
 	constructor() {
 		this.tunjanganKinerjaService = new TunjanganKinerjaService();
 	}
-
-	
 
 	async listTunjanganKinerja(c: Context) {
 		try {
@@ -40,6 +37,11 @@ export class TunjanganKinerjaController {
 				? Number.parseInt(paramPeraturanId)
 				: undefined;
 
+			const paramInstansiId = c.req.query("instansi");
+			const instansiId = paramInstansiId
+				? Number.parseInt(paramInstansiId)
+				: undefined;
+
 			if (!peraturanId) {
 				return c.json({
 					success: false,
@@ -47,16 +49,35 @@ export class TunjanganKinerjaController {
 				});
 			}
 
+			if (!instansiId) {
+				return c.json({
+					success: false,
+					message: "Param instansi id dibutuhkan",
+				});
+			}
+
+			const profilInstansi =
+				await this.tunjanganKinerjaService.getProfilInstansi(instansiId);
+
 			const detailTunjanganKinerja =
 				await this.tunjanganKinerjaService.getDetailTunjanganKinerja(
 					peraturanId,
 				);
 
-				console.log(detailTunjanganKinerja)
+			const statistikTunjanganKinerja =
+				await this.tunjanganKinerjaService.getStatistikTunjanganKinerja(
+					peraturanId,
+				);
+
+			const dataDetailTunjanganKinerja = {
+				instansi: profilInstansi,
+				statistik: statistikTunjanganKinerja,
+				tunjangan_kinerja: detailTunjanganKinerja,
+			};
 
 			return c.json({
 				success: true,
-				data: detailTunjanganKinerja,
+				data: dataDetailTunjanganKinerja,
 			});
 		} catch (error) {
 			return c.json(

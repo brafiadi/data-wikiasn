@@ -73,7 +73,8 @@ export class TunjanganKinerjaService {
 				FROM tunjangan_kinerja
 				GROUP BY peraturan_id
 			) stats ON stats.peraturan_id = pt.id
-			WHERE pt.berlaku = true;
+			WHERE pt.berlaku = true
+			ORDER BY median DESC;
         `;
 
 		try {

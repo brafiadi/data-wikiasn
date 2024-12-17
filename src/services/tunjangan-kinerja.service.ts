@@ -13,11 +13,39 @@ interface Statistik {
 	mean: number,
 	max: number
 }
+
+interface ProfilInstansi {
+	instansi_id: number
+	tunjangan_kinerja: number
+}
 export class TunjanganKinerjaService {
 	private prisma: PrismaClient;
 
 	constructor() {
 		this.prisma = new PrismaClient();
+	}
+
+	async getInstansiPeraturanBySlug(slug: string) {
+		const query = `
+			SELECT 
+				p.instansi_id,
+				p.tunjangan_kinerja
+				FROM profil_instansi p
+			JOIN instansi i ON p.instansi_id = i.id
+			WHERE i.slug = $1;
+		`
+		const params = [slug];
+
+		try {
+			const data = await this.prisma.$queryRawUnsafe<ProfilInstansi[]>(
+				query,
+				...params,
+			);
+			return data[0];
+		} catch (error) {
+			console.error("Gagal mengambil data:", error);
+			throw new Error("Gagal mengambil data");
+		}
 	}
 
 	async getProfilInstansi(instansiId: number) {
@@ -52,6 +80,7 @@ export class TunjanganKinerjaService {
             SELECT 
 				p.instansi_id,
 				i.nama,
+				i.slug,
 				pt.id AS peraturan_id,
 				pt.nama AS dasar_hukum,
 				pt.tautan,

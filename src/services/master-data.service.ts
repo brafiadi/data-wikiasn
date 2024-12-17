@@ -8,7 +8,7 @@ export class MasterDataService {
 	}
 
 	async getListMenu() {
-		const query = "SELECT * FROM menu";
+		const query = "SELECT * FROM menu ORDER BY aktif DESC";
 
 		try {
 			const menu = await this.prisma.$queryRawUnsafe(query);
@@ -20,7 +20,7 @@ export class MasterDataService {
 	}
 
 	async getListInstansi() {
-		const query = "SELECT * FROM instansi";
+		const query = "SELECT * FROM instansi ORDER BY nama ";
 
 		try {
 			const data = await this.prisma.$queryRawUnsafe(query);

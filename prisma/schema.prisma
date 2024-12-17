@@ -19,6 +19,7 @@ model menu {
   menu    String
   deskripsi String?
   link    String
+  aktif   Boolean @default(true)
 }
 
 model provinsi {
@@ -43,6 +44,7 @@ model instansi {
   id     Int   @id @default(autoincrement())
   nama   String
   jenis jenis_instansi
+  slug    String @default("")
   profil profil_instansi?
 }
 

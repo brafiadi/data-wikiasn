@@ -8,15 +8,15 @@ interface ProfilInstansi {
 }
 
 interface Statistik {
-	min: number,
-	median: number,
-	mean: number,
-	max: number
+	min: number;
+	median: number;
+	mean: number;
+	max: number;
 }
 
 interface ProfilInstansi {
-	instansi_id: number
-	tunjangan_kinerja: number
+	instansi_id: number;
+	tunjangan_kinerja: number;
 }
 export class TunjanganKinerjaService {
 	private prisma: PrismaClient;
@@ -33,7 +33,7 @@ export class TunjanganKinerjaService {
 				FROM profil_instansi p
 			JOIN instansi i ON p.instansi_id = i.id
 			WHERE i.slug = $1;
-		`
+		`;
 		const params = [slug];
 
 		try {
@@ -146,7 +146,10 @@ export class TunjanganKinerjaService {
 
 		const params = [peraturanId];
 
-		const data = await this.prisma.$queryRawUnsafe<Statistik[]>(query, ...params);
+		const data = await this.prisma.$queryRawUnsafe<Statistik[]>(
+			query,
+			...params,
+		);
 		return data[0];
 	}
 }

@@ -2,8 +2,8 @@ import type { Context } from "hono";
 import { TunjanganKinerjaService } from "../services/tunjangan-kinerja.service";
 
 interface ProfilInstansi {
-	instansi_id: number
-	tunjangan_kinerja: number
+	instansi_id: number;
+	tunjangan_kinerja: number;
 }
 export class TunjanganKinerjaController {
 	private tunjanganKinerjaService: TunjanganKinerjaService;
@@ -33,27 +33,28 @@ export class TunjanganKinerjaController {
 			);
 		}
 	}
-	
 
 	async detailTunjanganKinerja(c: Context) {
 		try {
+			const paramSlug = c.req.query("nama");
+			const slug = paramSlug ? paramSlug : undefined;
 
-			const paramSlug = c.req.query("nama")
-			const slug = paramSlug ? paramSlug : undefined
-
-			if(!slug){
+			if (!slug) {
 				return c.json({
 					success: false,
-					message: "Param nama instansi dibutuhkan"
-				})
+					message: "Param nama instansi dibutuhkan",
+				});
 			}
 
-			const getInstansiPeraturan: ProfilInstansi = await this.tunjanganKinerjaService.getInstansiPeraturanBySlug(slug as string)
+			const getInstansiPeraturan: ProfilInstansi =
+				await this.tunjanganKinerjaService.getInstansiPeraturanBySlug(
+					slug as string,
+				);
 
-			const instansiId = getInstansiPeraturan?.instansi_id ?? undefined
-			const peraturanId = getInstansiPeraturan?.tunjangan_kinerja ?? undefined
+			const instansiId = getInstansiPeraturan?.instansi_id ?? undefined;
+			const peraturanId = getInstansiPeraturan?.tunjangan_kinerja ?? undefined;
 
-			const profilInstansi =  	
+			const profilInstansi =
 				await this.tunjanganKinerjaService.getProfilInstansi(instansiId);
 
 			const detailTunjanganKinerja =

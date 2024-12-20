@@ -81,3 +81,65 @@ model tunjangan_kinerja {
   peraturan_id Int
   dasar_hukum peraturan @relation(fields: [peraturan_id], references: [id])
 }
+
+model standar_biaya_masukan {
+  id      Int     @id @default(autoincrement())
+  judul   String
+  jenis   String @default("")
+  link    String @default("")
+  kategori  standar_biaya_masukan_kategori[]
+  uraian  standar_biaya_masukan_uraian[]
+  penjelasan  standar_biaya_masukan_penjelasan[]
+}
+
+model standar_biaya_masukan_penjelasan {
+  id      Int     @id @default(autoincrement())
+  tahun   String
+  standar_biaya_masukan_id  Int
+  standar_biaya_masukan standar_biaya_masukan @relation(fields: [standar_biaya_masukan_id], references: [id])
+  penjelasan  String @db.Text @default("")
+}
+
+model standar_biaya_masukan_kategori {
+   id      Int     @id @default(autoincrement())
+   standar_biaya_masukan_id Int
+   standar_biaya_masukan  standar_biaya_masukan @relation(fields: [standar_biaya_masukan_id], references: [id])
+   nama_kategori  String
+   sub_kategori standar_biaya_masukan_sub_kategori[]
+   uraian standar_biaya_masukan_uraian[]
+}
+
+model standar_biaya_masukan_sub_kategori {
+   id      Int     @id @default(autoincrement())
+   kategori_id  Int
+   kategori standar_biaya_masukan_kategori @relation(fields: [kategori_id], references: [id])
+   nama_sub_kategori  String
+   uraian standar_biaya_masukan_uraian[]
+}
+
+model standar_biaya_masukan_uraian {
+  id      Int     @id @default(autoincrement())
+  uraian  String?
+  satuan  String?
+  standar_biaya_masukan_id  Int
+  standar_biaya_masukan standar_biaya_masukan @relation(fields: [standar_biaya_masukan_id], references: [id])
+  kategori_id Int?
+  kategori  standar_biaya_masukan_kategori? @relation(fields: [kategori_id], references: [id])
+  sub_kategori_id Int?
+  sub_kategori  standar_biaya_masukan_sub_kategori? @relation(fields: [sub_kategori_id], references: [id])
+  provinsi_id Int?
+  biaya standar_biaya_masukan_biaya[]
+}
+
+model standar_biaya_masukan_biaya {
+  id      Int     @id @default(autoincrement())
+  uraian_id Int
+  uraian  standar_biaya_masukan_uraian @relation(fields: [uraian_id], references: [id])
+  tahun   String
+  nilai_1 Int?
+  nilai_2 Int?
+  nilai_3 Int?
+  nilai_4 Int?
+  nilai_5 Int?
+  nilai_6 Int?
+}

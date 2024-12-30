@@ -7,3 +7,6 @@ const standarBiayaMasukanController = new StandarBiayaMasukanController();
 standarBiayaMasuaknRoute.get("/", (c) =>
 	standarBiayaMasukanController.listStandarBiayaMasuakn(c),
 );
+standarBiayaMasuaknRoute.get("/data", (c) =>
+	standarBiayaMasukanController.getSBMByIdAndTahun(c),
+);

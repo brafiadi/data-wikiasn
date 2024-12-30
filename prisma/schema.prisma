@@ -90,6 +90,20 @@ model standar_biaya_masukan {
   kategori  standar_biaya_masukan_kategori[]
   uraian  standar_biaya_masukan_uraian[]
   penjelasan  standar_biaya_masukan_penjelasan[]
+  tabel standar_biaya_masukan_tabel?
+}
+
+model standar_biaya_masukan_tabel {
+  id      Int     @id @default(autoincrement())
+  standar_biaya_masukan_id  Int @unique
+  standar_biaya_masukan standar_biaya_masukan @relation(fields: [standar_biaya_masukan_id], references: [id])
+  kolom_uraian String?
+  kolom_satuan String?
+  kolom_1 String?
+  kolom_2 String?
+  kolom_3 String?
+  kolom_4 String?
+  kolom_5 String?
 }
 
 model standar_biaya_masukan_penjelasan {

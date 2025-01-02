@@ -97,6 +97,7 @@ model standar_biaya_masukan_tabel {
   id      Int     @id @default(autoincrement())
   standar_biaya_masukan_id  Int @unique
   standar_biaya_masukan standar_biaya_masukan @relation(fields: [standar_biaya_masukan_id], references: [id])
+  kolom_kategori  String?
   kolom_uraian String?
   kolom_satuan String?
   kolom_1 String?

@@ -33,7 +33,7 @@ export class StandarBiayaMasukanService {
 
 	async getSBMTabel(id: number) {
 		const query = `
-			SELECT kolom_uraian, kolom_satuan, kolom_1, kolom_2, kolom_3, kolom_4, kolom_5 
+			SELECT kolom_kategori, kolom_uraian, kolom_satuan, kolom_1, kolom_2, kolom_3, kolom_4, kolom_5 
 			FROM standar_biaya_masukan_tabel 
 			WHERE standar_biaya_masukan_id = ${id}
 		`;

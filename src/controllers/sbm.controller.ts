@@ -53,14 +53,13 @@ export class StandarBiayaMasukanController {
 
 			// console.log(sbm)
 
-			const sbmId = await this.standarBiayaMasuakanService.getSBMIdBySLug(sbm)
+			const sbmId = await this.standarBiayaMasuakanService.getSBMIdBySLug(sbm);
 
-			const id = sbmId.id
+			const id = sbmId.id;
 
 			// console.log(sbmId)
 
-			const tabelData =
-				await this.standarBiayaMasuakanService.getSBMTabel(id);
+			const tabelData = await this.standarBiayaMasuakanService.getSBMTabel(id);
 
 			const sbmData = await this.standarBiayaMasuakanService.getSBMByIdAndTahun(
 				tahun,

@@ -15,15 +15,15 @@ export class StandarBiayaMasukanService {
 		return data;
 	}
 
-	async getSBMIdBySLug(sbm: string){
+	async getSBMIdBySLug(sbm: string) {
 		const query = `
 			SELECT id
 			FROM standar_biaya_masukan
 			WHERE link = '${sbm}'
 			
-		`
-		const data = await this.prisma.$queryRawUnsafe(query)
-		return data[0]
+		`;
+		const data = await this.prisma.$queryRawUnsafe(query);
+		return data[0];
 	}
 
 	async getSBMByIdAndTahun(tahun: string, id: number) {

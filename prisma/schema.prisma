@@ -158,3 +158,19 @@ model standar_biaya_masukan_biaya {
   nilai_5 Int?
   nilai_6 Int?
 }
+
+model user {
+  id      Int     @id @default(autoincrement())
+  email   String  @unique
+  password String?
+  nama    String?
+  avatar    String?
+  role    role
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+}
+
+enum role {
+  admin @map("Administator")
+  kontributor @map("Kontributor")
+}

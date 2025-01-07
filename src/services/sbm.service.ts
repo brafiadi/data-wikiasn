@@ -40,4 +40,24 @@ export class StandarBiayaMasukanService {
 		const data = await this.prisma.$queryRawUnsafe(query);
 		return data[0];
 	}
+
+	async getPenjelasanSBM(tahun: string, id: number) {
+		const query = `
+			SELECT penjelasan
+			FROM standar_biaya_masukan_penjelasan
+			WHERE tahun = '${tahun}' AND id = ${id}
+		`;
+		const data = await this.prisma.$queryRawUnsafe(query);
+		return data[0];
+	}
+
+	async getPeraturanSBM(tahun: string) {
+		const query = `
+			SELECT * 
+			FROM peraturan 
+			WHERE nama LIKE '%Standar Biaya Masukan%${tahun}%' 
+		`;
+		const data = await this.prisma.$queryRawUnsafe(query);
+		return data[0];
+	}
 }

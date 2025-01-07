@@ -159,7 +159,7 @@ model standar_biaya_masukan_biaya {
   nilai_6 Int?
 }
 
-model user {
+model users {
   id      Int     @id @default(autoincrement())
   email   String  @unique
   password String?
@@ -167,7 +167,7 @@ model user {
   avatar    String?
   role    role
   created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  updated_at  DateTime @default(now())
 }
 
 enum role {

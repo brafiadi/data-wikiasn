@@ -1,9 +1,16 @@
 import type { Context } from "hono";
 import { sign } from "hono/jwt";
+import { AuthService } from "../services/auth.service";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
 export class AuthController {
+	private authService: AuthService;
+
+	constructor() {
+		this.authService = new AuthService();
+	}
+
 	async login(c: Context) {
 		try {
 			const { email } = await c.req.json();
@@ -20,6 +27,20 @@ export class AuthController {
 
 			// Lakukan proses login di sini
 
+			const checkEmail = await this.authService.checkEmail(email);
+
+			if (!checkEmail) {
+				return c.json(
+					{
+						success: false,
+						message: "Anda tidak memiliki akses",
+					},
+					404,
+				);
+			}
+
+			const role = checkEmail.role;
+
 			const payload = {
 				email: email,
 				exp: Math.floor(Date.now() / 1000) + 60 * 60,
@@ -32,6 +53,7 @@ export class AuthController {
 
 			const data = {
 				email: email,
+				role: role,
 				token: token,
 			};
 

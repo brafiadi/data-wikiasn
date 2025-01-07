@@ -59,6 +59,20 @@ export class StandarBiayaMasukanController {
 
 			// console.log(sbmId)
 
+			const penjelasanData =
+				await this.standarBiayaMasuakanService.getPenjelasanSBM(tahun, id);
+
+			// console.log(penjelasanData)
+
+			const peraturanData =
+				await this.standarBiayaMasuakanService.getPeraturanSBM(tahun);
+
+			const info = {
+				peraturan: peraturanData.nama,
+				tautan: peraturanData.tautan,
+				penjelasan: penjelasanData ? penjelasanData.penjelasan : "",
+			};
+
 			const tabelData = await this.standarBiayaMasuakanService.getSBMTabel(id);
 
 			const sbmData = await this.standarBiayaMasuakanService.getSBMByIdAndTahun(
@@ -67,6 +81,7 @@ export class StandarBiayaMasukanController {
 			);
 			return c.json({
 				success: true,
+				info: info,
 				table: tabelData,
 				data: sbmData,
 			});

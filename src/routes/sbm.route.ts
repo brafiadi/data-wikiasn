@@ -11,6 +11,6 @@ standarBiayaMasuaknRoute.get("/", (c) =>
 standarBiayaMasuaknRoute.get("/data", (c) =>
 	standarBiayaMasukanController.getSBMByIdAndTahun(c),
 );
-standarBiayaMasuaknRoute.post("/data", authMiddleware, (c) => {
-	return c.text("You are authorized");
+standarBiayaMasuaknRoute.post("/tes", authMiddleware, (c) => {
+	return c.json({ success: true, message: "Autentikasi berhasil" });
 });

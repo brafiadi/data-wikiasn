@@ -67,10 +67,14 @@ export class StandarBiayaMasukanController {
 			const peraturanData =
 				await this.standarBiayaMasuakanService.getPeraturanSBM(tahun);
 
+			const judulSBM =
+				await this.standarBiayaMasuakanService.getJudulSBMById(id);
+
 			const info = {
+				judul: judulSBM.judul ? judulSBM.judul : "",
+				penjelasan: penjelasanData ? penjelasanData.penjelasan : "",
 				peraturan: peraturanData.nama,
 				tautan: peraturanData.tautan,
-				penjelasan: penjelasanData ? penjelasanData.penjelasan : "",
 			};
 
 			const tabelData = await this.standarBiayaMasuakanService.getSBMTabel(id);

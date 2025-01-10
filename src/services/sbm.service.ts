@@ -26,6 +26,16 @@ export class StandarBiayaMasukanService {
 		return data[0];
 	}
 
+	async getJudulSBMById(id: number) {
+		const query = `
+			SELECT judul
+			FROM standar_biaya_masukan
+			WHERE id = ${id}
+		`;
+		const data = await this.prisma.$queryRawUnsafe(query);
+		return data[0];
+	}
+
 	async getSBMByIdAndTahun(tahun: string, id: number) {
 		const data = await this.prisma.$queryRawTyped(selectSBMByTahun(tahun, id));
 		return data;

@@ -70,4 +70,19 @@ export class StandarBiayaMasukanService {
 		const data = await this.prisma.$queryRawUnsafe(query);
 		return data[0];
 	}
+
+	async insertPenjelasanSBM(tahun: string, sbmId: number, penjelasan: string) {
+		const query = `
+			INSERT INTO standar_biaya_masukan_penjelasan (tahun, standar_biaya_masukan_id, penjelasan)
+			VALUES ('${tahun}', ${sbmId}, '${penjelasan}')
+		`;
+		const data = {
+			tahun: tahun,
+			standar_biaya_masukan_id: sbmId,
+			penjelasan: penjelasan,
+		};
+
+		await this.prisma.$executeRawUnsafe(query);
+		return { success: true, message: "Data berhasil ditambahkan", data: data };
+	}
 }

@@ -85,4 +85,20 @@ export class StandarBiayaMasukanService {
 		await this.prisma.$executeRawUnsafe(query);
 		return { success: true, message: "Data berhasil ditambahkan", data: data };
 	}
+
+	async editPenjelasanSBM(id: number, penjelasan: string) {
+		const query = `
+			UPDATE standar_biaya_masukan_penjelasan
+			SET penjelasan = '${penjelasan}'
+			WHERE id = '${id}'
+		`;
+
+		const data = {
+			id: id,
+			penjelasan: penjelasan,
+		};
+
+		await this.prisma.$executeRawUnsafe(query);
+		return { sucess: true, message: "Data berhasil diperbarui", data: data };
+	}
 }

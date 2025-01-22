@@ -113,4 +113,22 @@ export class StandarBiayaMasukanController {
 			return this.handleError(c, error);
 		}
 	}
+
+	async editPenjelasanSBM(c: Context) {
+		try {
+			const paramId = c.req.param("id");
+			const { penjelasan } = await c.req.json();
+
+			const id = Number.parseInt(paramId);
+
+			const result = await this.standarBiayaMasuakanService.editPenjelasanSBM(
+				id,
+				penjelasan,
+			);
+
+			return c.json(result);
+		} catch (error) {
+			return this.handleError(c, error);
+		}
+	}
 }

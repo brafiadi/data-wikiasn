@@ -14,6 +14,9 @@ standarBiayaMasukanRoute.get("/data", (c) =>
 standarBiayaMasukanRoute.post("/penjelasan", authMiddleware, (c) =>
 	standarBiayaMasukanController.insertPenjelasanSBM(c),
 );
+standarBiayaMasukanRoute.put("/penjelasan/:id", authMiddleware, (c) =>
+	standarBiayaMasukanController.editPenjelasanSBM(c),
+);
 
 //tes
 standarBiayaMasukanRoute.post("/tes", authMiddleware, (c) => {

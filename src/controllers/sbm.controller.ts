@@ -8,6 +8,19 @@ export class StandarBiayaMasukanController {
 		this.standarBiayaMasuakanService = new StandarBiayaMasukanService();
 	}
 
+	private handleError(c: Context, error: unknown) {
+		return c.json(
+			{
+				success: false,
+				message:
+					error instanceof Error
+						? error.message
+						: "Terjadi kesalahan tidak dikenal",
+			},
+			500,
+		);
+	}
+
 	async listStandarBiayaMasuakn(c: Context) {
 		try {
 			const listStandarBiayaMasuakn =
@@ -17,16 +30,7 @@ export class StandarBiayaMasukanController {
 				data: listStandarBiayaMasuakn,
 			});
 		} catch (error) {
-			return c.json(
-				{
-					success: false,
-					message:
-						error instanceof Error
-							? error.message
-							: "Terjadi kesalahan tidak dikenal",
-				},
-				500,
-			);
+			return this.handleError(c, error);
 		}
 	}
 
@@ -90,16 +94,41 @@ export class StandarBiayaMasukanController {
 				data: sbmData,
 			});
 		} catch (error) {
-			return c.json(
-				{
-					success: false,
-					message:
-						error instanceof Error
-							? error.message
-							: "Terjadi kesalahan tidak dikenal",
-				},
-				500,
+			return this.handleError(c, error);
+		}
+	}
+
+	async insertPenjelasanSBM(c: Context) {
+		try {
+			const { tahun, id, penjelasan } = await c.req.json();
+
+			const result = await this.standarBiayaMasuakanService.insertPenjelasanSBM(
+				tahun,
+				id,
+				penjelasan,
 			);
+
+			return c.json(result);
+		} catch (error) {
+			return this.handleError(c, error);
+		}
+	}
+
+	async editPenjelasanSBM(c: Context) {
+		try {
+			const paramId = c.req.param("id");
+			const { penjelasan } = await c.req.json();
+
+			const id = Number.parseInt(paramId);
+
+			const result = await this.standarBiayaMasuakanService.editPenjelasanSBM(
+				id,
+				penjelasan,
+			);
+
+			return c.json(result);
+		} catch (error) {
+			return this.handleError(c, error);
 		}
 	}
 }

@@ -75,6 +75,7 @@ export class StandarBiayaMasukanController {
 				await this.standarBiayaMasuakanService.getJudulSBMById(id);
 
 			const info = {
+				id: id,
 				judul: judulSBM.judul ? judulSBM.judul : "",
 				penjelasan: penjelasanData ? penjelasanData.penjelasan : "",
 				peraturan: peraturanData.nama,

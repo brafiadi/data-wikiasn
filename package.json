@@ -6,11 +6,11 @@
   },
   "dependencies": {
     "@prisma/client": "^6.2.1",
-    "hono": "4.6.17",
+    "hono": "4.6.19",
     "prisma": "^6.2.1"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
-    "@types/bun": "1.1.18"
+    "@types/bun": "1.2.1"
   }
 }

@@ -8,6 +8,19 @@ export class PeraturanController {
 		this.peraturanService = new PeraturanService();
 	}
 
+	private handleError(c: Context, error: unknown) {
+		return c.json(
+			{
+				success: false,
+				message:
+					error instanceof Error
+						? error.message
+						: "Terjadi kesalahan tidak dikenal",
+			},
+			500,
+		);
+	}
+
 	async listPeraturan(c: Context) {
 		try {
 			const listPeraturan = await this.peraturanService.getListPeraturan();
@@ -17,16 +30,7 @@ export class PeraturanController {
 				data: listPeraturan,
 			});
 		} catch (error) {
-			return c.json(
-				{
-					success: false,
-					message:
-						error instanceof Error
-							? error.message
-							: "Terjadi kesalahan tidak dikenal",
-				},
-				500,
-			);
+			return this.handleError(c, error);
 		}
 	}
 
@@ -52,16 +56,25 @@ export class PeraturanController {
 				data: peraturan,
 			});
 		} catch (error) {
-			return c.json(
-				{
-					success: false,
-					message:
-						error instanceof Error
-							? error.message
-							: "Terjadi kesalahan tidak dikenal",
-				},
-				500,
-			);
+			return this.handleError(c, error);
+		}
+	}
+
+	async insertPeraturan(c: Context) {
+		try {
+			const { nama, tautan, tahun, kata_kunci } = await c.req.json();
+
+			const data = {
+				nama: nama,
+				tautan: tautan,
+				tahun: tahun,
+				kata_kunci: kata_kunci,
+			};
+
+			const result = await this.peraturanService.insertPeraturan(data);
+			return c.json(result);
+		} catch (error) {
+			return this.handleError(c, error);
 		}
 	}
 }

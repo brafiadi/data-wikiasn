@@ -25,7 +25,7 @@ export class PeraturanService {
 	}
 
 	async getListPeraturan() {
-		const query = "SELECT * FROM peraturan";
+		const query = "SELECT * FROM peraturan ORDER BY tahun DESC";
 
 		try {
 			const peraturan = await this.prisma.$queryRawUnsafe(query);
@@ -41,6 +41,23 @@ export class PeraturanService {
 
 		try {
 			const peraturan: Peraturan[] = await this.prisma.$queryRawUnsafe(query);
+			return peraturan[0];
+		} catch (error) {
+			console.error("Gagal mengambil data:", error);
+			throw new Error("Gagal mengambil data");
+		}
+	}
+
+	async getPeraturanBySlug(slug: string) {
+		const query = "SELECT * FROM peraturan WHERE slug = $1";
+
+		const params = [slug];
+
+		try {
+			const peraturan: Peraturan[] = await this.prisma.$queryRawUnsafe(
+				query,
+				...params,
+			);
 			return peraturan[0];
 		} catch (error) {
 			console.error("Gagal mengambil data:", error);

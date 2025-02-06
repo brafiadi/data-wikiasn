@@ -1,5 +1,6 @@
 import type { Context } from "hono";
 import { PeraturanService } from "../services/peraturan.service";
+import slugify from "slugify";
 
 export class PeraturanController {
 	private peraturanService: PeraturanService;
@@ -25,6 +26,12 @@ export class PeraturanController {
 		try {
 			const listPeraturan = await this.peraturanService.getListPeraturan();
 
+			// // menambahkan link
+			// const listPeraturanWithLink = listPeraturan.map((peraturan: any) => ({
+			// 	...peraturan,
+			// 	link: slugify(peraturan.nama, { lower: true, strict: true }),
+			// }));
+
 			return c.json({
 				success: true,
 				data: listPeraturan,
@@ -34,22 +41,39 @@ export class PeraturanController {
 		}
 	}
 
-	async peraturanById(c: Context) {
+	async detailPeraturan(c: Context) {
 		try {
 			const paramId = c.req.query("id");
-			if (!paramId) {
+			const paramLink = c.req.query("link");
+			if (!paramId && !paramLink) {
 				return c.json(
 					{
 						success: false,
-						message: "parameter id dibutuhkan",
+						message: "parameter dibutuhkan",
 					},
 					400,
 				);
 			}
 
-			const id = Number.parseInt(paramId);
+			let peraturan: any = null; // Initialize with a default value and type
 
-			const peraturan = await this.peraturanService.getPeraturanById(id);
+			if (paramId) {
+				const id = paramId ? Number.parseInt(paramId) : 0;
+				peraturan = await this.peraturanService.getPeraturanById(id);
+			} else if (paramLink) {
+				// Changed to else if since we only want one condition to execute
+				const slug = paramLink;
+				peraturan = await this.peraturanService.getPeraturanBySlug(slug);
+			}
+
+			if (!peraturan) {
+				// Add check for null/undefined
+				return c.json({
+					success: false,
+					message: "Peraturan not found",
+					status: 404,
+				});
+			}
 
 			return c.json({
 				success: true,

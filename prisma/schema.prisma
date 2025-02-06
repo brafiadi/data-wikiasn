@@ -70,6 +70,7 @@ model peraturan {
   tahun String
   berlaku Boolean
   kata_kunci  String[]
+  slug  String?
   profil_instansi  profil_instansi[]
   tunjangan_kinerja tunjangan_kinerja[]
 }

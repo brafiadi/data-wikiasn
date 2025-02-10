@@ -25,7 +25,28 @@ export class PeraturanService {
 	}
 
 	async getListPeraturan() {
-		const query = "SELECT * FROM peraturan ORDER BY tahun DESC";
+		const query = `
+      SELECT *
+      FROM peraturan
+     ORDER BY 
+      CASE kategori
+        WHEN 'Ketetapan Majelis Permusyawaratan Rakyat' THEN 1
+        WHEN 'Undang-Undang' THEN 2
+        WHEN 'Undang-Undang Darurat' THEN 3
+        WHEN 'Peraturan Pemerintah Pengganti Undang-Undang' THEN 4
+        WHEN 'Peraturan Pemerintah' THEN 5
+        WHEN 'Peraturan Presiden' THEN 6
+        WHEN 'Penetapan Presiden' THEN 7
+        WHEN 'Keputusan Presiden' THEN 8
+        WHEN 'Instruksi Presiden' THEN 9
+        WHEN 'Peraturan Menteri' THEN 10
+        WHEN 'Keputusan Menteri' THEN 11
+        WHEN 'Peraturan Badan/Lembaga' THEN 12
+        WHEN 'Peraturan Daerah' THEN 13
+        ELSE 14
+      END,
+      tanggal_pengesahan DESC
+    `;
 
 		try {
 			const peraturan = await this.prisma.$queryRawUnsafe(query);

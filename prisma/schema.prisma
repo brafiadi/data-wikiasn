@@ -71,8 +71,26 @@ model peraturan {
   berlaku Boolean
   kata_kunci  String[]
   slug  String?
+  kategori  kategori_peraturan @default(peraturan_pemerintah)
+  tanggal_pengesahan DateTime @default(now())
   profil_instansi  profil_instansi[]
   tunjangan_kinerja tunjangan_kinerja[]
+}
+
+enum kategori_peraturan {
+  ketetapan_mpr @map("Ketetapan Majelis Permusyawaratan Rakyat")
+  undang_undang @map("Undang-Undang")
+  undang_undang_darurat @map("Undang-Undang Darurat")
+  perpu @map("Peraturan Pemerintah Pengganti Undang-Undang")
+  peraturan_pemerintah @map("Peraturan Pemerintah")
+  peraturan_presiden @map("Peraturan Presiden")
+  penetapan_presiden @map("Penetapan Presiden")
+  keputusan_presiden @map("Keputusan Presiden")
+  instruksi_presiden @map("Instruksi Presiden")
+  peraturan_menteri @map("Peraturan Menteri")
+  keputusan_menteri @map("Keputusan Menteri")
+  peraturan_badan_lembaga @map("Peraturan Badan/Lembaga")
+  peraturan_daerah @map("Peraturan Daerah")
 }
 
 model tunjangan_kinerja {
@@ -175,3 +193,5 @@ enum role {
   admin @map("Administator")
   kontributor @map("Kontributor")
 }
+
+

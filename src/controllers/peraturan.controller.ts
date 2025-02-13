@@ -1,6 +1,17 @@
 import type { Context } from "hono";
 import { PeraturanService } from "../services/peraturan.service";
-import slugify from "slugify";
+
+interface Peraturan {
+	id: number;
+	nama: string;
+	tautan: string;
+	tahun: string;
+	berlaku: boolean;
+	kata_kunci: string[];
+	slug: string;
+	kategori: string;
+	tanggal_pengesahan: Date;
+}
 
 export class PeraturanController {
 	private peraturanService: PeraturanService;
@@ -55,7 +66,7 @@ export class PeraturanController {
 				);
 			}
 
-			let peraturan: any = null; // Initialize with a default value and type
+			let peraturan: Peraturan | null = null; // Initialize with a default value and type
 
 			if (paramId) {
 				const id = paramId ? Number.parseInt(paramId) : 0;
@@ -86,13 +97,24 @@ export class PeraturanController {
 
 	async insertPeraturan(c: Context) {
 		try {
-			const { nama, tautan, tahun, kata_kunci } = await c.req.json();
+			const {
+				nama,
+				tautan,
+				tahun,
+				kata_kunci,
+				slug,
+				kategori,
+				tanggal_pengesahan,
+			} = await c.req.json();
 
 			const data = {
 				nama: nama,
 				tautan: tautan,
 				tahun: tahun,
 				kata_kunci: kata_kunci,
+				slug: slug,
+				kategori: kategori,
+				tanggal_pengesahan: tanggal_pengesahan,
 			};
 
 			const result = await this.peraturanService.insertPeraturan(data);

@@ -102,7 +102,7 @@ export class PeraturanService {
 
 		const query = `
         INSERT INTO peraturan (nama, tautan, tahun, berlaku, kata_kunci, slug, kategori, tanggal_pengesahan)
-        VALUES ($1, $2, $3, $4, ARRAY[${kataKunciArray.join(",")}], $5, $6, $7);
+        VALUES ($1, $2, $3, $4, ARRAY[${kataKunciArray.join(",")}], $5, $6::kategori_peraturan, $7::timestamp);
     `;
 
 		const params = [

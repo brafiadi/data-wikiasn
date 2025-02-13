@@ -108,14 +108,16 @@ export class PeraturanController {
 			} = await c.req.json();
 
 			const data = {
-				nama: nama,
-				tautan: tautan,
-				tahun: tahun,
-				kata_kunci: kata_kunci,
-				slug: slug,
-				kategori: kategori,
-				tanggal_pengesahan: tanggal_pengesahan,
+				nama,
+				tautan,
+				tahun,
+				kata_kunci,
+				slug,
+				kategori,
+				tanggal_pengesahan,
 			};
+
+			// console.log(data);
 
 			const result = await this.peraturanService.insertPeraturan(data);
 			return c.json(result);

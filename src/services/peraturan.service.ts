@@ -7,6 +7,9 @@ interface Peraturan {
 	tahun: string;
 	berlaku: boolean;
 	kata_kunci: string[];
+	slug: string;
+	kategori: string;
+	tanggal_pengesahan: Date;
 }
 
 interface InsertPeraturanData {
@@ -15,6 +18,9 @@ interface InsertPeraturanData {
 	tahun: string;
 	berlaku?: boolean;
 	kata_kunci: string[];
+	slug: string;
+	kategori: string;
+	tanggal_pengesahan: Date;
 }
 
 export class PeraturanService {
@@ -95,11 +101,19 @@ export class PeraturanService {
 		);
 
 		const query = `
-        INSERT INTO peraturan (nama, tautan, tahun, berlaku, kata_kunci)
-        VALUES ($1, $2, $3, $4, ARRAY[${kataKunciArray.join(",")}]);
+        INSERT INTO peraturan (nama, tautan, tahun, berlaku, kata_kunci, slug, kategori, tanggal_pengesahan)
+        VALUES ($1, $2, $3, $4, ARRAY[${kataKunciArray.join(",")}], $5, $6::kategori_peraturan, $7::timestamp);
     `;
 
-		const params = [data.nama, data.tautan, data.tahun, berlakuValue];
+		const params = [
+			data.nama,
+			data.tautan,
+			data.tahun,
+			berlakuValue,
+			data.slug,
+			data.kategori,
+			data.tanggal_pengesahan,
+		];
 
 		// console.log("Query:", query); // Debugging query
 		// console.log("Params:", params); // Debugging parameters

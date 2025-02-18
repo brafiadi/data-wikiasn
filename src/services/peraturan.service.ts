@@ -1,27 +1,9 @@
 import { PrismaClient } from "@prisma/client";
-
-interface Peraturan {
-	id: number;
-	nama: string;
-	tautan: string;
-	tahun: string;
-	berlaku: boolean;
-	kata_kunci: string[];
-	slug: string;
-	kategori: string;
-	tanggal_pengesahan: Date;
-}
-
-interface InsertPeraturanData {
-	nama: string;
-	tautan: string;
-	tahun: string;
-	berlaku?: boolean;
-	kata_kunci: string[];
-	slug: string;
-	kategori: string;
-	tanggal_pengesahan: Date;
-}
+import type {
+	InsertPeraturanData,
+	Peraturan,
+	UpdatePeraturanData,
+} from "../types/peraturan";
 
 export class PeraturanService {
 	private prisma: PrismaClient;
@@ -119,5 +101,51 @@ export class PeraturanService {
 		// console.log("Params:", params); // Debugging parameters
 		await this.prisma.$queryRawUnsafe(query, ...params);
 		return { succes: true, message: "Data berhasil ditambahkan", data: data };
+	}
+
+	async updatePeraturan(id: number, data: UpdatePeraturanData) {
+		const kataKunciArray = data.kata_kunci.map((item: string) =>
+			item.replace(/'/g, ""),
+		);
+		const query = `
+      UPDATE peraturan
+      SET 
+        nama = $1,
+        tautan = $2,
+        tahun = $3,
+        berlaku = $4,
+        kata_kunci = string_to_array($5, ','),
+        slug = $6,
+        kategori = $7::kategori_peraturan,
+        tanggal_pengesahan = $8::timestamp
+      WHERE id = $9
+    `;
+		const formattedKataKunci = kataKunciArray.join(",");
+		const params = [
+			data.nama,
+			data.tautan,
+			data.tahun,
+			data.berlaku,
+			formattedKataKunci,
+			data.slug,
+			data.kategori,
+			data.tanggal_pengesahan,
+			id,
+		];
+
+		// console.log(query);
+
+		await this.prisma.$queryRawUnsafe(query, ...params);
+
+		// Fetch updated data
+		const updatedData = await this.prisma.$queryRaw`
+      SELECT * FROM peraturan WHERE id = ${id}
+    `;
+
+		return {
+			success: true,
+			message: "Data berhasil diperbarui",
+			data: updatedData[0],
+		};
 	}
 }

@@ -10,3 +10,6 @@ peraturanRoute.get("/data", (c) => peraturanController.detailPeraturan(c));
 peraturanRoute.post("/", authMiddleware, (c) =>
 	peraturanController.insertPeraturan(c),
 );
+peraturanRoute.put("/:id", authMiddleware, (c) =>
+	peraturanController.editPeraturan(c),
+);

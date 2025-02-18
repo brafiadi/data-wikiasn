@@ -1,5 +1,6 @@
 import type { Context } from "hono";
 import { PeraturanService } from "../services/peraturan.service";
+import type { UpdatePeraturanData } from "../types/peraturan";
 
 interface Peraturan {
 	id: number;
@@ -120,6 +121,40 @@ export class PeraturanController {
 			// console.log(data);
 
 			const result = await this.peraturanService.insertPeraturan(data);
+			return c.json(result);
+		} catch (error) {
+			return this.handleError(c, error);
+		}
+	}
+
+	async editPeraturan(c: Context) {
+		try {
+			const paramId = c.req.param("id");
+			const {
+				nama,
+				tautan,
+				tahun,
+				berlaku,
+				kata_kunci,
+				slug,
+				kategori,
+				tanggal_pengesahan,
+			} = await c.req.json();
+
+			const data: UpdatePeraturanData = {
+				nama,
+				tautan,
+				tahun,
+				berlaku,
+				kata_kunci,
+				slug,
+				kategori,
+				tanggal_pengesahan,
+			};
+
+			const id = Number.parseInt(paramId);
+
+			const result = await this.peraturanService.updatePeraturan(id, data);
 			return c.json(result);
 		} catch (error) {
 			return this.handleError(c, error);

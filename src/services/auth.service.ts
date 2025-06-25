@@ -1,21 +1,20 @@
-import { PrismaClient } from "@prisma/client";
+import prisma from "../lib/prisma";
 
 export class AuthService {
-	private prisma: PrismaClient;
-
-	constructor() {
-		this.prisma = new PrismaClient();
-	}
-
-	async checkEmail(email: string) {
-		// console.log("Checking email:", email);
-		const query = `
-			SELECT email, nama, avatar, role 
-			FROM users
-			WHERE email = $1
-		`;
-
-		const data = await this.prisma.$queryRawUnsafe(query, email);
-		return data[0];
-	}
+  async checkEmail(email: string) {
+    try {
+      return await prisma.users.findUnique({
+        where: { email: email },
+        select: {
+          email: true,
+          nama: true,
+          avatar: true,
+          role: true,
+        },
+      });
+    } catch (error) {
+      console.error("Gagal memeriksa email:", error);
+      throw new Error("Gagal memeriksa email");
+    }
+  }
 }

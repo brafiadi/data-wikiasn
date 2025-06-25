@@ -1,163 +1,62 @@
 import type { Context } from "hono";
 import { PeraturanService } from "../services/peraturan.service";
 import type { UpdatePeraturanData } from "../types/peraturan";
-
-interface Peraturan {
-	id: number;
-	nama: string;
-	tautan: string;
-	tahun: string;
-	berlaku: boolean;
-	kata_kunci: string[];
-	slug: string;
-	kategori: string;
-	tanggal_pengesahan: Date;
-}
+import { HTTPException } from "hono/http-exception";
 
 export class PeraturanController {
-	private peraturanService: PeraturanService;
+  private peraturanService: PeraturanService;
 
-	constructor() {
-		this.peraturanService = new PeraturanService();
-	}
+  constructor() {
+    this.peraturanService = new PeraturanService();
+  }
 
-	private handleError(c: Context, error: unknown) {
-		return c.json(
-			{
-				success: false,
-				message:
-					error instanceof Error
-						? error.message
-						: "Terjadi kesalahan tidak dikenal",
-			},
-			500,
-		);
-	}
+  async listPeraturan(c: Context) {
+    const listPeraturan = await this.peraturanService.getListPeraturan();
+    return c.json({
+      success: true,
+      data: listPeraturan,
+    });
+  }
 
-	async listPeraturan(c: Context) {
-		try {
-			const listPeraturan = await this.peraturanService.getListPeraturan();
+  async detailPeraturan(c: Context) {
+    const paramId = c.req.query("id");
+    const paramLink = c.req.query("link");
+    if (!paramId && !paramLink) {
+      throw new HTTPException(400, { message: "parameter dibutuhkan" });
+    }
 
-			// // menambahkan link
-			// const listPeraturanWithLink = listPeraturan.map((peraturan: any) => ({
-			// 	...peraturan,
-			// 	link: slugify(peraturan.nama, { lower: true, strict: true }),
-			// }));
+    let peraturan = null;
 
-			return c.json({
-				success: true,
-				data: listPeraturan,
-			});
-		} catch (error) {
-			return this.handleError(c, error);
-		}
-	}
+    if (paramId) {
+      const id = Number.parseInt(paramId);
+      peraturan = await this.peraturanService.getPeraturanById(id);
+    } else if (paramLink) {
+      const slug = paramLink;
+      peraturan = await this.peraturanService.getPeraturanBySlug(slug);
+    }
 
-	async detailPeraturan(c: Context) {
-		try {
-			const paramId = c.req.query("id");
-			const paramLink = c.req.query("link");
-			if (!paramId && !paramLink) {
-				return c.json(
-					{
-						success: false,
-						message: "parameter dibutuhkan",
-					},
-					400,
-				);
-			}
+    if (!peraturan) {
+      throw new HTTPException(404, { message: "Peraturan not found" });
+    }
 
-			let peraturan: Peraturan | null = null; // Initialize with a default value and type
+    return c.json({
+      success: true,
+      data: peraturan,
+    });
+  }
 
-			if (paramId) {
-				const id = paramId ? Number.parseInt(paramId) : 0;
-				peraturan = await this.peraturanService.getPeraturanById(id);
-			} else if (paramLink) {
-				// Changed to else if since we only want one condition to execute
-				const slug = paramLink;
-				peraturan = await this.peraturanService.getPeraturanBySlug(slug);
-			}
+  async insertPeraturan(c: Context) {
+    const data = await c.req.json();
+    const result = await this.peraturanService.insertPeraturan(data);
+    return c.json(result);
+  }
 
-			if (!peraturan) {
-				// Add check for null/undefined
-				return c.json({
-					success: false,
-					message: "Peraturan not found",
-					status: 404,
-				});
-			}
+  async editPeraturan(c: Context) {
+    const paramId = c.req.param("id");
+    const data: UpdatePeraturanData = await c.req.json();
+    const id = Number.parseInt(paramId);
 
-			return c.json({
-				success: true,
-				data: peraturan,
-			});
-		} catch (error) {
-			return this.handleError(c, error);
-		}
-	}
-
-	async insertPeraturan(c: Context) {
-		try {
-			const {
-				nama,
-				tautan,
-				tahun,
-				kata_kunci,
-				slug,
-				kategori,
-				tanggal_pengesahan,
-			} = await c.req.json();
-
-			const data = {
-				nama,
-				tautan,
-				tahun,
-				kata_kunci,
-				slug,
-				kategori,
-				tanggal_pengesahan,
-			};
-
-			// console.log(data);
-
-			const result = await this.peraturanService.insertPeraturan(data);
-			return c.json(result);
-		} catch (error) {
-			return this.handleError(c, error);
-		}
-	}
-
-	async editPeraturan(c: Context) {
-		try {
-			const paramId = c.req.param("id");
-			const {
-				nama,
-				tautan,
-				tahun,
-				berlaku,
-				kata_kunci,
-				slug,
-				kategori,
-				tanggal_pengesahan,
-			} = await c.req.json();
-
-			const data: UpdatePeraturanData = {
-				nama,
-				tautan,
-				tahun,
-				berlaku,
-				kata_kunci,
-				slug,
-				kategori,
-				tanggal_pengesahan,
-			};
-
-			const id = Number.parseInt(paramId);
-
-			const result = await this.peraturanService.updatePeraturan(id, data);
-			return c.json(result);
-		} catch (error) {
-			return this.handleError(c, error);
-		}
-	}
+    const result = await this.peraturanService.updatePeraturan(id, data);
+    return c.json(result);
+  }
 }

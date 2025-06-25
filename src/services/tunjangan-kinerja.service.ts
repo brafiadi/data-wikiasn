@@ -1,55 +1,30 @@
-import { PrismaClient } from "@prisma/client";
-
-interface ProfilInstansi {
-	id: number;
-	nama: string;
-	dasar_hukum: string;
-	tautan: string;
-}
+import prisma from "../lib/prisma";
 
 interface Statistik {
-	min: number;
-	median: number;
-	mean: number;
-	max: number;
+  min: number;
+  median: number;
+  mean: number;
+  max: number;
 }
 
-interface ProfilInstansi {
-	instansi_id: number;
-	tunjangan_kinerja: number;
-}
 export class TunjanganKinerjaService {
-	private prisma: PrismaClient;
+  async getInstansiPeraturanBySlug(slug: string) {
+    try {
+      const instansi = await prisma.instansi.findUnique({
+        where: { slug: slug },
+        include: {
+          profil: true,
+        },
+      });
+      return instansi?.profil;
+    } catch (error) {
+      console.error("Gagal mengambil data instansi by slug:", error);
+      throw new Error("Gagal mengambil data instansi by slug");
+    }
+  }
 
-	constructor() {
-		this.prisma = new PrismaClient();
-	}
-
-	async getInstansiPeraturanBySlug(slug: string) {
-		const query = `
-			SELECT 
-				p.instansi_id,
-				p.tunjangan_kinerja
-				FROM profil_instansi p
-			JOIN instansi i ON p.instansi_id = i.id
-			WHERE i.slug = $1;
-		`;
-		const params = [slug];
-
-		try {
-			const data = await this.prisma.$queryRawUnsafe<ProfilInstansi[]>(
-				query,
-				...params,
-			);
-			return data[0];
-		} catch (error) {
-			console.error("Gagal mengambil data:", error);
-			throw new Error("Gagal mengambil data");
-		}
-	}
-
-	async getProfilInstansi(instansiId: number) {
-		const query = `
+  async getProfilInstansi(instansiId: number) {
+    const query = `
             SELECT
                 p.instansi_id as id,
                 i.nama,
@@ -61,22 +36,26 @@ export class TunjanganKinerjaService {
 			WHERE pt.berlaku = true AND i.id = $1
          `;
 
-		const params = [instansiId];
+    const params = [instansiId];
 
-		try {
-			const profil = await this.prisma.$queryRawUnsafe<ProfilInstansi[]>(
-				query,
-				...params,
-			);
-			return profil[0];
-		} catch (error) {
-			console.error("Gagal mengambil data:", error);
-			throw new Error("Gagal mengambil data");
-		}
-	}
+    try {
+      const profil = await prisma.$queryRawUnsafe<
+        {
+          id: number;
+          nama: string;
+          dasar_hukum: string;
+          tautan: string;
+        }[]
+      >(query, ...params);
+      return profil[0];
+    } catch (error) {
+      console.error("Gagal mengambil data profil instansi:", error);
+      throw new Error("Gagal mengambil data profil instansi");
+    }
+  }
 
-	async getListTunjanganKinerja() {
-		const query = `
+  async getListTunjanganKinerja() {
+    const query = `
             SELECT 
 				p.instansi_id,
 				i.nama,
@@ -106,35 +85,33 @@ export class TunjanganKinerjaService {
 			ORDER BY median DESC;
         `;
 
-		try {
-			const data = await this.prisma.$queryRawUnsafe(query);
-			return data;
-		} catch (error) {
-			console.error("Gagal mengambil data:", error);
-			throw new Error("Gagal mengambil data");
-		}
-	}
+    try {
+      const data = await prisma.$queryRawUnsafe(query);
+      return data;
+    } catch (error) {
+      console.error("Gagal mengambil data list tunjangan kinerja:", error);
+      throw new Error("Gagal mengambil data list tunjangan kinerja");
+    }
+  }
 
-	async getDetailTunjanganKinerja(peraturanId: number) {
-		const query = `
-			SELECT id, kelas_jabatan, besaran
-			FROM tunjangan_kinerja
-			WHERE peraturan_id = $1
-		`;
+  async getDetailTunjanganKinerja(peraturanId: number) {
+    try {
+      return await prisma.tunjangan_kinerja.findMany({
+        where: { peraturan_id: peraturanId },
+        select: {
+          id: true,
+          kelas_jabatan: true,
+          besaran: true,
+        },
+      });
+    } catch (error) {
+      console.error("Gagal mengambil data detail tunjangan kinerja:", error);
+      throw new Error("Gagal mengambil data detail tunjangan kinerja");
+    }
+  }
 
-		const params = [peraturanId];
-
-		try {
-			const data = await this.prisma.$queryRawUnsafe(query, ...params);
-			return data;
-		} catch (error) {
-			console.error("Gagal mengambil data:", error);
-			throw new Error("Gagal mengambil data");
-		}
-	}
-
-	async getStatistikTunjanganKinerja(peraturanId: number) {
-		const query = `
+  async getStatistikTunjanganKinerja(peraturanId: number) {
+    const query = `
 			SELECT 
 				MIN(besaran) AS min,
 				PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY besaran) AS median,
@@ -144,12 +121,14 @@ export class TunjanganKinerjaService {
 			WHERE peraturan_id = $1;
 		`;
 
-		const params = [peraturanId];
+    const params = [peraturanId];
 
-		const data = await this.prisma.$queryRawUnsafe<Statistik[]>(
-			query,
-			...params,
-		);
-		return data[0];
-	}
+    try {
+      const data = await prisma.$queryRawUnsafe<Statistik[]>(query, ...params);
+      return data[0];
+    } catch (error) {
+      console.error("Gagal mengambil data statistik tunjangan kinerja:", error);
+      throw new Error("Gagal mengambil data statistik tunjangan kinerja");
+    }
+  }
 }

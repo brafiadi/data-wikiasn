@@ -6,19 +6,19 @@ export const standarBiayaMasukanRoute = new Hono();
 const standarBiayaMasukanController = new StandarBiayaMasukanController();
 
 standarBiayaMasukanRoute.get("/", (c) =>
-	standarBiayaMasukanController.listStandarBiayaMasuakn(c),
+  standarBiayaMasukanController.listStandarBiayaMasuakn(c),
 );
 standarBiayaMasukanRoute.get("/data", (c) =>
-	standarBiayaMasukanController.getSBMByIdAndTahun(c),
+  standarBiayaMasukanController.getSBMByIdAndTahun(c),
 );
 standarBiayaMasukanRoute.post("/penjelasan", authMiddleware, (c) =>
-	standarBiayaMasukanController.insertPenjelasanSBM(c),
+  standarBiayaMasukanController.insertPenjelasanSBM(c),
 );
 standarBiayaMasukanRoute.put("/penjelasan/:id", authMiddleware, (c) =>
-	standarBiayaMasukanController.editPenjelasanSBM(c),
+  standarBiayaMasukanController.editPenjelasanSBM(c),
 );
 
 //tes
 standarBiayaMasukanRoute.post("/tes", authMiddleware, (c) => {
-	return c.json({ success: true, message: "Autentikasi berhasil" });
+  return c.json({ success: true, message: "Autentikasi berhasil" });
 });

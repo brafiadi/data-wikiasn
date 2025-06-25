@@ -2,56 +2,30 @@ import type { Context } from "hono";
 import { HariLiburService } from "../services/hari-libur.service";
 
 export class HariLiburController {
-	private hariLiburService: HariLiburService;
+  private hariLiburService: HariLiburService;
 
-	constructor() {
-		this.hariLiburService = new HariLiburService();
-	}
+  constructor() {
+    this.hariLiburService = new HariLiburService();
+  }
 
-	async listHariLibur(c: Context) {
-		try {
-			const paramTahun = c.req.query("tahun");
-			const tahun = paramTahun ? Number.parseInt(paramTahun) : undefined;
+  async listHariLibur(c: Context) {
+    const paramTahun = c.req.query("tahun");
+    const tahun = paramTahun ? Number.parseInt(paramTahun) : undefined;
 
-			const listHariLibur = await this.hariLiburService.getListHariLibur(tahun);
+    const listHariLibur = await this.hariLiburService.getListHariLibur(tahun);
 
-			return c.json({
-				success: true,
-				data: listHariLibur,
-			});
-		} catch (error) {
-			return c.json(
-				{
-					success: false,
-					message:
-						error instanceof Error
-							? error.message
-							: "Terjadi kesalahan tidak dikenal",
-				},
-				500,
-			);
-		}
-	}
+    return c.json({
+      success: true,
+      data: listHariLibur,
+    });
+  }
 
-	async liburHariIni(c: Context) {
-		try {
-			const liburHariIni = await this.hariLiburService.getLiburHariIni();
+  async liburHariIni(c: Context) {
+    const liburHariIni = await this.hariLiburService.getLiburHariIni();
 
-			return c.json({
-				success: true,
-				data: liburHariIni,
-			});
-		} catch (error) {
-			return c.json(
-				{
-					success: false,
-					message:
-						error instanceof Error
-							? error.message
-							: "Terjadi kesalahan tidak dikenal",
-				},
-				500,
-			);
-		}
-	}
+    return c.json({
+      success: true,
+      data: liburHariIni,
+    });
+  }
 }

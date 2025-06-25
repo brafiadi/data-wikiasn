@@ -1,135 +1,95 @@
 import type { Context } from "hono";
 import { StandarBiayaMasukanService } from "../services/sbm.service";
+import { HTTPException } from "hono/http-exception";
 
 export class StandarBiayaMasukanController {
-	private standarBiayaMasuakanService: StandarBiayaMasukanService;
+  private standarBiayaMasukanService: StandarBiayaMasukanService;
 
-	constructor() {
-		this.standarBiayaMasuakanService = new StandarBiayaMasukanService();
-	}
+  constructor() {
+    this.standarBiayaMasukanService = new StandarBiayaMasukanService();
+  }
 
-	private handleError(c: Context, error: unknown) {
-		return c.json(
-			{
-				success: false,
-				message:
-					error instanceof Error
-						? error.message
-						: "Terjadi kesalahan tidak dikenal",
-			},
-			500,
-		);
-	}
+  async listStandarBiayaMasukan(c: Context) {
+    const listSBM =
+      await this.standarBiayaMasukanService.getListStandarBiayaMasukan();
+    return c.json({
+      success: true,
+      data: listSBM,
+    });
+  }
 
-	async listStandarBiayaMasuakn(c: Context) {
-		try {
-			const listStandarBiayaMasuakn =
-				await this.standarBiayaMasuakanService.getListStandarBiayaMasukan();
-			return c.json({
-				success: true,
-				data: listStandarBiayaMasuakn,
-			});
-		} catch (error) {
-			return this.handleError(c, error);
-		}
-	}
+  async getSBMByIdAndTahun(c: Context) {
+    const tahun = c.req.query("tahun");
+    const sbmSlug = c.req.query("sbm");
 
-	async getSBMByIdAndTahun(c: Context) {
-		try {
-			const paramTahun = c.req.query("tahun");
-			const paramSbm = c.req.query("sbm");
+    if (!tahun || !sbmSlug) {
+      throw new HTTPException(400, {
+        message: "Parameter 'tahun' dan 'sbm' dibutuhkan",
+      });
+    }
 
-			const tahun = paramTahun ? paramTahun : undefined;
-			const sbm = paramSbm ? paramSbm : undefined;
+    const sbmInfo = await this.standarBiayaMasukanService.getSBMBySlug(sbmSlug);
+    if (!sbmInfo) {
+      throw new HTTPException(404, { message: "SBM tidak ditemukan" });
+    }
+    const { id, judul } = sbmInfo;
 
-			if (!tahun) {
-				return c.json({
-					success: false,
-					message: "Param tahun dibutuhkan",
-				});
-			}
-			if (!sbm) {
-				return c.json({
-					success: false,
-					message: "Param sbm dibutuhkan",
-				});
-			}
+    const [penjelasanData, peraturanData, tabelData, sbmData] =
+      await Promise.all([
+        this.standarBiayaMasukanService.getPenjelasanSBM(tahun, id),
+        this.standarBiayaMasukanService.getPeraturanSBM(tahun),
+        this.standarBiayaMasukanService.getSBMTabel(id),
+        this.standarBiayaMasukanService.getSBMByIdAndTahun(tahun, id),
+      ]);
 
-			// console.log(sbm)
+    const info = {
+      id: id,
+      judul: judul,
+      penjelasan: penjelasanData?.penjelasan ?? "",
+      peraturan: peraturanData?.nama ?? "",
+      tautan: peraturanData?.tautan ?? "",
+    };
 
-			const sbmId = await this.standarBiayaMasuakanService.getSBMIdBySLug(sbm);
+    return c.json({
+      success: true,
+      info: info,
+      table: tabelData,
+      data: sbmData,
+    });
+  }
 
-			const id = sbmId.id;
+  async insertPenjelasanSBM(c: Context) {
+    const { tahun, id, penjelasan } = await c.req.json();
+    if (!tahun || !id || penjelasan === undefined) {
+      throw new HTTPException(400, {
+        message: "Parameter 'tahun', 'id', dan 'penjelasan' dibutuhkan",
+      });
+    }
 
-			// console.log(sbmId)
+    const result = await this.standarBiayaMasukanService.insertPenjelasanSBM(
+      tahun,
+      id,
+      penjelasan,
+    );
 
-			const penjelasanData =
-				await this.standarBiayaMasuakanService.getPenjelasanSBM(tahun, id);
+    return c.json(result);
+  }
 
-			// console.log(penjelasanData)
+  async editPenjelasanSBM(c: Context) {
+    const paramId = c.req.param("id");
+    const { penjelasan } = await c.req.json();
+    if (penjelasan === undefined) {
+      throw new HTTPException(400, {
+        message: "Parameter 'penjelasan' dibutuhkan",
+      });
+    }
 
-			const peraturanData =
-				await this.standarBiayaMasuakanService.getPeraturanSBM(tahun);
+    const id = Number.parseInt(paramId);
+    const result = await this.standarBiayaMasukanService.editPenjelasanSBM(
+      id,
+      penjelasan,
+    );
 
-			const judulSBM =
-				await this.standarBiayaMasuakanService.getJudulSBMById(id);
-
-			const info = {
-				id: id,
-				judul: judulSBM.judul ? judulSBM.judul : "",
-				penjelasan: penjelasanData ? penjelasanData.penjelasan : "",
-				peraturan: peraturanData.nama,
-				tautan: peraturanData.tautan,
-			};
-
-			const tabelData = await this.standarBiayaMasuakanService.getSBMTabel(id);
-
-			const sbmData = await this.standarBiayaMasuakanService.getSBMByIdAndTahun(
-				tahun,
-				id,
-			);
-			return c.json({
-				success: true,
-				info: info,
-				table: tabelData,
-				data: sbmData,
-			});
-		} catch (error) {
-			return this.handleError(c, error);
-		}
-	}
-
-	async insertPenjelasanSBM(c: Context) {
-		try {
-			const { tahun, id, penjelasan } = await c.req.json();
-
-			const result = await this.standarBiayaMasuakanService.insertPenjelasanSBM(
-				tahun,
-				id,
-				penjelasan,
-			);
-
-			return c.json(result);
-		} catch (error) {
-			return this.handleError(c, error);
-		}
-	}
-
-	async editPenjelasanSBM(c: Context) {
-		try {
-			const paramId = c.req.param("id");
-			const { penjelasan } = await c.req.json();
-
-			const id = Number.parseInt(paramId);
-
-			const result = await this.standarBiayaMasuakanService.editPenjelasanSBM(
-				id,
-				penjelasan,
-			);
-
-			return c.json(result);
-		} catch (error) {
-			return this.handleError(c, error);
-		}
-	}
+    return c.json(result);
+  }
 }

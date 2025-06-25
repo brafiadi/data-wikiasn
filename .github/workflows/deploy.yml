@@ -1,0 +1,47 @@
+name: Deploy to VPS
+
+# Aksi ini akan berjalan setiap kali ada push ke branch 'main'
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to VPS via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: 22 # Port SSH default, ubah jika perlu
+          script_stop: true # Memastikan skrip berjalan hingga selesai
+          script: |
+            # Masuk ke direktori proyek (HARAP SESUAIKAN JIKA PERLU)
+            cd /home/brafiadi/Projects/WikiASN/data-wikiasn
+
+            # Salin isi dari secret DOT_ENV ke dalam file .env di server
+            echo "${{ secrets.DOT_ENV }}" > .env
+            
+            # Ambil kode terbaru dari branch main
+            git pull origin main
+            
+            # Install dependensi menggunakan Bun
+            bun install --frozen-lockfile
+            
+            # Jalankan migrasi database untuk production
+            bunx prisma migrate deploy
+            
+            # Generate ulang Prisma Client (langkah aman)
+            bunx prisma generate
+            
+            # Reload aplikasi menggunakan PM2 untuk zero-downtime restart
+            # 'data-wikiasn' diambil dari pm2.config.js
+            bunx pm2 reload data-wikiasn 

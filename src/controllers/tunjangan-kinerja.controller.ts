@@ -1,93 +1,63 @@
 import type { Context } from "hono";
 import { TunjanganKinerjaService } from "../services/tunjangan-kinerja.service";
+import { HTTPException } from "hono/http-exception";
 
-interface ProfilInstansi {
-	instansi_id: number;
-	tunjangan_kinerja: number;
-}
 export class TunjanganKinerjaController {
-	private tunjanganKinerjaService: TunjanganKinerjaService;
+  private tunjanganKinerjaService: TunjanganKinerjaService;
 
-	constructor() {
-		this.tunjanganKinerjaService = new TunjanganKinerjaService();
-	}
+  constructor() {
+    this.tunjanganKinerjaService = new TunjanganKinerjaService();
+  }
 
-	async listTunjanganKinerja(c: Context) {
-		try {
-			const listTunjanganKinerja =
-				await this.tunjanganKinerjaService.getListTunjanganKinerja();
-			return c.json({
-				success: true,
-				data: listTunjanganKinerja,
-			});
-		} catch (error) {
-			return c.json(
-				{
-					success: false,
-					message:
-						error instanceof Error
-							? error.message
-							: "Terjadi kesalahan tidak dikenal",
-				},
-				500,
-			);
-		}
-	}
+  async listTunjanganKinerja(c: Context) {
+    const listTunjanganKinerja =
+      await this.tunjanganKinerjaService.getListTunjanganKinerja();
+    return c.json({
+      success: true,
+      data: listTunjanganKinerja,
+    });
+  }
 
-	async detailTunjanganKinerja(c: Context) {
-		try {
-			const paramSlug = c.req.query("nama");
-			const slug = paramSlug ? paramSlug : undefined;
+  async detailTunjanganKinerja(c: Context) {
+    const slug = c.req.query("nama");
+    if (!slug) {
+      throw new HTTPException(400, {
+        message: "Param nama instansi dibutuhkan",
+      });
+    }
 
-			if (!slug) {
-				return c.json({
-					success: false,
-					message: "Param nama instansi dibutuhkan",
-				});
-			}
+    const instansiPeraturan =
+      await this.tunjanganKinerjaService.getInstansiPeraturanBySlug(slug);
 
-			const getInstansiPeraturan: ProfilInstansi =
-				await this.tunjanganKinerjaService.getInstansiPeraturanBySlug(
-					slug as string,
-				);
+    if (
+      !instansiPeraturan?.instansi_id ||
+      !instansiPeraturan?.tunjangan_kinerja
+    ) {
+      throw new HTTPException(404, { message: "Instansi tidak ditemukan" });
+    }
 
-			const instansiId = getInstansiPeraturan?.instansi_id ?? undefined;
-			const peraturanId = getInstansiPeraturan?.tunjangan_kinerja ?? undefined;
+    const [profilInstansi, detailTunjanganKinerja, statistikTunjanganKinerja] =
+      await Promise.all([
+        this.tunjanganKinerjaService.getProfilInstansi(
+          instansiPeraturan.instansi_id,
+        ),
+        this.tunjanganKinerjaService.getDetailTunjanganKinerja(
+          instansiPeraturan.tunjangan_kinerja,
+        ),
+        this.tunjanganKinerjaService.getStatistikTunjanganKinerja(
+          instansiPeraturan.tunjangan_kinerja,
+        ),
+      ]);
 
-			const profilInstansi =
-				await this.tunjanganKinerjaService.getProfilInstansi(instansiId);
+    const dataDetailTunjanganKinerja = {
+      instansi: profilInstansi,
+      statistik: statistikTunjanganKinerja,
+      tunjangan_kinerja: detailTunjanganKinerja,
+    };
 
-			const detailTunjanganKinerja =
-				await this.tunjanganKinerjaService.getDetailTunjanganKinerja(
-					peraturanId,
-				);
-
-			const statistikTunjanganKinerja =
-				await this.tunjanganKinerjaService.getStatistikTunjanganKinerja(
-					peraturanId,
-				);
-
-			const dataDetailTunjanganKinerja = {
-				instansi: profilInstansi,
-				statistik: statistikTunjanganKinerja,
-				tunjangan_kinerja: detailTunjanganKinerja,
-			};
-
-			return c.json({
-				success: true,
-				data: dataDetailTunjanganKinerja,
-			});
-		} catch (error) {
-			return c.json(
-				{
-					success: false,
-					message:
-						error instanceof Error
-							? error.message
-							: "Terjadi kesalahan tidak dikenal",
-				},
-				500,
-			);
-		}
-	}
+    return c.json({
+      success: true,
+      data: dataDetailTunjanganKinerja,
+    });
+  }
 }

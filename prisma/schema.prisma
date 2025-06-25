@@ -44,7 +44,7 @@ model instansi {
   id     Int   @id @default(autoincrement())
   nama   String
   jenis jenis_instansi
-  slug    String @default("")
+  slug    String @unique @default("")
   profil profil_instansi?
 }
 
@@ -54,6 +54,9 @@ model profil_instansi {
   instansi  instansi @relation(fields: [instansi_id], references: [id])
   tunjangan_kinerja Int
   peraturan_tunjangan_kinerja peraturan @relation(fields: [tunjangan_kinerja], references: [id])
+
+  @@index([instansi_id])
+  @@index([tunjangan_kinerja])
 }
 
 enum jenis_instansi {
@@ -99,13 +102,15 @@ model tunjangan_kinerja {
   besaran Int
   peraturan_id Int
   dasar_hukum peraturan @relation(fields: [peraturan_id], references: [id])
+
+  @@index([peraturan_id])
 }
 
 model standar_biaya_masukan {
   id      Int     @id @default(autoincrement())
   judul   String
   jenis   String @default("")
-  link    String @default("")
+  link    String  @unique @default("")
   kategori  standar_biaya_masukan_kategori[]
   uraian  standar_biaya_masukan_uraian[]
   penjelasan  standar_biaya_masukan_penjelasan[]
@@ -132,6 +137,8 @@ model standar_biaya_masukan_penjelasan {
   standar_biaya_masukan_id  Int
   standar_biaya_masukan standar_biaya_masukan @relation(fields: [standar_biaya_masukan_id], references: [id])
   penjelasan  String @db.Text @default("")
+
+  @@index([standar_biaya_masukan_id])
 }
 
 model standar_biaya_masukan_kategori {
@@ -141,6 +148,8 @@ model standar_biaya_masukan_kategori {
    nama_kategori  String
    sub_kategori standar_biaya_masukan_sub_kategori[]
    uraian standar_biaya_masukan_uraian[]
+
+   @@index([standar_biaya_masukan_id])
 }
 
 model standar_biaya_masukan_sub_kategori {
@@ -149,6 +158,8 @@ model standar_biaya_masukan_sub_kategori {
    kategori standar_biaya_masukan_kategori @relation(fields: [kategori_id], references: [id])
    nama_sub_kategori  String
    uraian standar_biaya_masukan_uraian[]
+
+   @@index([kategori_id])
 }
 
 model standar_biaya_masukan_uraian {
@@ -163,6 +174,10 @@ model standar_biaya_masukan_uraian {
   sub_kategori  standar_biaya_masukan_sub_kategori? @relation(fields: [sub_kategori_id], references: [id])
   provinsi_id Int?
   biaya standar_biaya_masukan_biaya[]
+
+  @@index([standar_biaya_masukan_id])
+  @@index([kategori_id])
+  @@index([sub_kategori_id])
 }
 
 model standar_biaya_masukan_biaya {
@@ -176,6 +191,8 @@ model standar_biaya_masukan_biaya {
   nilai_4 Int?
   nilai_5 Int?
   nilai_6 Int?
+
+  @@index([uraian_id])
 }
 
 model users {
@@ -186,7 +203,7 @@ model users {
   avatar    String?
   role    role
   created_at  DateTime @default(now())
-  updated_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
 }
 
 enum role {

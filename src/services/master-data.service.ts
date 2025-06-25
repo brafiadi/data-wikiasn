@@ -1,33 +1,29 @@
-import { PrismaClient } from "@prisma/client";
+import prisma from "../lib/prisma";
 
 export class MasterDataService {
-	private prisma: PrismaClient;
+  async getListMenu() {
+    try {
+      return await prisma.menu.findMany({
+        orderBy: {
+          aktif: "desc",
+        },
+      });
+    } catch (error) {
+      console.error("Gagal mengambil data menu:", error);
+      throw new Error("Gagal mengambil data menu");
+    }
+  }
 
-	constructor() {
-		this.prisma = new PrismaClient();
-	}
-
-	async getListMenu() {
-		const query = "SELECT * FROM menu ORDER BY aktif DESC";
-
-		try {
-			const menu = await this.prisma.$queryRawUnsafe(query);
-			return menu;
-		} catch (error) {
-			console.error("Gagal mengambil data:", error);
-			throw new Error("Gagal mengambil data");
-		}
-	}
-
-	async getListInstansi() {
-		const query = "SELECT * FROM instansi ORDER BY nama ";
-
-		try {
-			const data = await this.prisma.$queryRawUnsafe(query);
-			return data;
-		} catch (error) {
-			console.error("Gagal mengambil data:", error);
-			throw new Error("Gagal mengambil data");
-		}
-	}
+  async getListInstansi() {
+    try {
+      return await prisma.instansi.findMany({
+        orderBy: {
+          nama: "asc",
+        },
+      });
+    } catch (error) {
+      console.error("Gagal mengambil data instansi:", error);
+      throw new Error("Gagal mengambil data instansi");
+    }
+  }
 }

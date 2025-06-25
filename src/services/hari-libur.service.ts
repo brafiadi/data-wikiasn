@@ -1,73 +1,62 @@
-import { PrismaClient } from "@prisma/client";
-
-interface HariLibur {
-	nama: string;
-	tanggal_mulai: Date;
-	tanggal_akhir: Date;
-}
+import prisma from "../lib/prisma";
 
 export class HariLiburService {
-	private prisma: PrismaClient;
+  async getListHariLibur(tahun?: number) {
+    try {
+      const whereClause = tahun ? { tahun: tahun } : {};
+      const hariLibur = await prisma.hari_libur.findMany({
+        where: whereClause,
+        orderBy: {
+          tanggal_mulai: "asc",
+        },
+      });
+      return hariLibur;
+    } catch (error) {
+      console.error("Gagal mengambil data hari libur:", error);
+      throw new Error("Gagal mengambil data hari libur");
+    }
+  }
 
-	constructor() {
-		this.prisma = new PrismaClient();
-	}
+  async getLiburHariIni() {
+    const today = new Date();
+    const dayOfWeek = today.getDay();
 
-	async getListHariLibur(tahun?: number) {
-		const query = tahun
-			? `SELECT * FROM "hari_libur" WHERE tahun = $1 ORDER BY tanggal_mulai`
-			: `SELECT * FROM "hari_libur" ORDER BY tanggal_mulai`;
+    try {
+      const hariLiburData = await prisma.hari_libur.findFirst({
+        where: {
+          tanggal_mulai: { lte: today },
+          tanggal_akhir: { gte: today },
+        },
+      });
 
-		const params = tahun ? [tahun] : [];
+      let libur = hariLiburData !== null;
+      let namaHariLibur = "";
+      let pesan = "Selamat bekerja dan menyelesaikan tugas hari ini";
+      const hari_ini = today.toLocaleDateString("id", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
 
-		try {
-			const hariLibur = await this.prisma.$queryRawUnsafe(query, ...params);
-			return hariLibur;
-		} catch (error) {
-			console.error("Gagal mengambil data:", error);
-			throw new Error("Gagal mengambil data");
-		}
-	}
+      if (libur && hariLiburData) {
+        namaHariLibur = hariLiburData.nama;
+        pesan = "Selamat berlibur dan semoga harimu menyenangkan";
+      } else if (dayOfWeek === 0 || dayOfWeek === 6) {
+        libur = true;
+        namaHariLibur = `Hari ${dayOfWeek === 0 ? "Minggu" : "Sabtu"}`;
+        pesan = "Selamat berakhir pekan dan semoga harimu menyenangkan";
+      }
 
-	async getLiburHariIni(): Promise<{
-		libur: boolean;
-		hari_libur: string;
-		hari_ini: string;
-		pesan: string;
-	}> {
-		const today = new Date();
-		const dayOfWeek = today.getDay();
-
-		const hariLiburData = await this.prisma.$queryRaw<HariLibur[]>`
-								SELECT hl.nama, hl.tanggal_mulai, hl.tanggal_akhir 
-								FROM hari_libur hl
-								WHERE hl.tanggal_mulai <= CURRENT_DATE AND hl.tanggal_akhir >= CURRENT_DATE
-							`;
-
-		let libur = hariLiburData.length > 0;
-		let hari_libur = "";
-		let pesan = "Selamat bekerja dan menyelesaikan tugas hari ini";
-		const hari_ini = today.toLocaleDateString("id", {
-			weekday: "long",
-			year: "numeric",
-			month: "long",
-			day: "numeric",
-		});
-
-		if (libur) {
-			hari_libur = hariLiburData[0].nama;
-			pesan = "Selamat berlibur dan semoga harimu menyenangkan";
-		} else if (dayOfWeek === 0 || dayOfWeek === 6) {
-			libur = true;
-			hari_libur = `Hari ${dayOfWeek === 0 ? "Minggu" : "Sabtu"}`;
-			pesan = "Selamat berakhir pekan dan semoga harimu menyenangkan";
-		}
-
-		return {
-			libur,
-			hari_libur,
-			hari_ini,
-			pesan,
-		};
-	}
+      return {
+        libur,
+        hari_libur: namaHariLibur,
+        hari_ini,
+        pesan,
+      };
+    } catch (error) {
+      console.error("Gagal memeriksa hari libur:", error);
+      throw new Error("Gagal memeriksa apakah hari ini libur");
+    }
+  }
 }

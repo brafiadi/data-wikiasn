@@ -5,8 +5,8 @@ export const tunjanganKinerjaRoute = new Hono();
 const tunjanganKinerjaController = new TunjanganKinerjaController();
 
 tunjanganKinerjaRoute.get("/", (c) =>
-	tunjanganKinerjaController.listTunjanganKinerja(c),
+  tunjanganKinerjaController.listTunjanganKinerja(c),
 );
 tunjanganKinerjaRoute.get("/instansi", (c) =>
-	tunjanganKinerjaController.detailTunjanganKinerja(c),
+  tunjanganKinerjaController.detailTunjanganKinerja(c),
 );

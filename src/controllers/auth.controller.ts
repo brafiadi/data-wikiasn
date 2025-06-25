@@ -1,78 +1,53 @@
 import type { Context } from "hono";
 import { sign } from "hono/jwt";
 import { AuthService } from "../services/auth.service";
+import { HTTPException } from "hono/http-exception";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
 export class AuthController {
-	private authService: AuthService;
+  private authService: AuthService;
 
-	constructor() {
-		this.authService = new AuthService();
-	}
+  constructor() {
+    this.authService = new AuthService();
+  }
 
-	async login(c: Context) {
-		try {
-			const { email } = await c.req.json();
+  async login(c: Context) {
+    const { email } = await c.req.json();
 
-			if (!email) {
-				return c.json(
-					{
-						success: false,
-						message: "email dibutuhkan",
-					},
-					400,
-				);
-			}
+    if (!email) {
+      throw new HTTPException(400, { message: "Email dibutuhkan" });
+    }
 
-			// Lakukan proses login di sini
+    if (!JWT_SECRET) {
+      console.error("JWT_SECRET is not defined in environment variables");
+      throw new HTTPException(500, { message: "Server configuration error" });
+    }
 
-			const checkEmail = await this.authService.checkEmail(email);
+    const user = await this.authService.checkEmail(email);
 
-			if (!checkEmail) {
-				return c.json(
-					{
-						success: false,
-						message: "Anda tidak memiliki akses",
-					},
-					404,
-				);
-			}
+    if (!user) {
+      throw new HTTPException(403, { message: "Anda tidak memiliki akses" });
+    }
 
-			const role = checkEmail.role;
+    const payload = {
+      email: user.email,
+      role: user.role,
+      exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24, // Token berlaku 24 jam
+    };
 
-			const payload = {
-				email: email,
-				exp: Math.floor(Date.now() / 1000) + 60 * 60,
-			};
-			const secret = JWT_SECRET;
-			if (!secret) {
-				throw new Error("JWT_SECRET is not defined");
-			}
-			const token = await sign(payload, secret);
+    const token = await sign(payload, JWT_SECRET);
 
-			const data = {
-				email: email,
-				role: role,
-				token: token,
-			};
+    const data = {
+      email: user.email,
+      role: user.role,
+      token: token,
+    };
 
-			return c.json({
-				success: true,
-				message: "Login berhasil",
-				data: data,
-			});
-		} catch (error) {
-			return c.json(
-				{
-					success: false,
-					message:
-						error instanceof Error
-							? error.message
-							: "Terjadi kesalahan tidak dikenal",
-				},
-				500,
-			);
-		}
-	}
+    return c.json({
+      success: true,
+      message: "Login berhasil",
+      data: data,
+    });
+  }
 }

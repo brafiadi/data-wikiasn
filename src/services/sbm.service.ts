@@ -1,104 +1,106 @@
-import { PrismaClient } from "@prisma/client";
-import { selectSBMByTahun } from "@prisma/client/sql";
+import prisma from "../lib/prisma";
+
 export class StandarBiayaMasukanService {
-	private prisma: PrismaClient;
+  async getListStandarBiayaMasukan() {
+    return prisma.standar_biaya_masukan.findMany({
+      select: { id: true, judul: true, jenis: true, link: true },
+      orderBy: { id: "asc" },
+    });
+  }
 
-	constructor() {
-		this.prisma = new PrismaClient();
-	}
+  async getSBMBySlug(slug: string) {
+    return prisma.standar_biaya_masukan.findUnique({
+      where: { link: slug },
+      select: { id: true, judul: true },
+    });
+  }
 
-	async getListStandarBiayaMasukan() {
-		const query =
-			"SELECT id, judul, jenis, link FROM standar_biaya_masukan ORDER BY id";
+  async getSBMByIdAndTahun(tahun: string, id: number) {
+    return prisma.standar_biaya_masukan_uraian.findMany({
+      where: {
+        standar_biaya_masukan_id: id,
+        biaya: {
+          some: {
+            tahun: tahun,
+          },
+        },
+      },
+      include: {
+        kategori: true,
+        sub_kategori: true,
+        biaya: {
+          where: {
+            tahun: tahun,
+          },
+        },
+      },
+    });
+  }
 
-		const data = await this.prisma.$queryRawUnsafe(query);
-		return data;
-	}
+  async getSBMTabel(id: number) {
+    return prisma.standar_biaya_masukan_tabel.findFirst({
+      where: { standar_biaya_masukan_id: id },
+      select: {
+        kolom_kategori: true,
+        kolom_uraian: true,
+        kolom_satuan: true,
+        kolom_1: true,
+        kolom_2: true,
+        kolom_3: true,
+        kolom_4: true,
+        kolom_5: true,
+      },
+    });
+  }
 
-	async getSBMIdBySLug(sbm: string) {
-		const query = `
-			SELECT id
-			FROM standar_biaya_masukan
-			WHERE link = '${sbm}'
-			
-		`;
-		const data = await this.prisma.$queryRawUnsafe(query);
-		return data[0];
-	}
+  async getPenjelasanSBM(tahun: string, sbmId: number) {
+    return prisma.standar_biaya_masukan_penjelasan.findFirst({
+      where: {
+        tahun: tahun,
+        standar_biaya_masukan_id: sbmId,
+      },
+      select: {
+        penjelasan: true,
+      },
+    });
+  }
 
-	async getJudulSBMById(id: number) {
-		const query = `
-			SELECT judul
-			FROM standar_biaya_masukan
-			WHERE id = ${id}
-		`;
-		const data = await this.prisma.$queryRawUnsafe(query);
-		return data[0];
-	}
+  async getPeraturanSBM(tahun: string) {
+    return prisma.peraturan.findFirst({
+      where: {
+        nama: {
+          contains: `Standar Biaya Masukan ${tahun}`,
+          mode: "insensitive",
+        },
+      },
+    });
+  }
 
-	async getSBMByIdAndTahun(tahun: string, id: number) {
-		const data = await this.prisma.$queryRawTyped(selectSBMByTahun(tahun, id));
-		return data;
-	}
+  async insertPenjelasanSBM(tahun: string, sbmId: number, penjelasan: string) {
+    const newPenjelasan = await prisma.standar_biaya_masukan_penjelasan.create({
+      data: {
+        tahun: tahun,
+        standar_biaya_masukan_id: sbmId,
+        penjelasan: penjelasan,
+      },
+    });
+    return {
+      success: true,
+      message: "Data berhasil ditambahkan",
+      data: newPenjelasan,
+    };
+  }
 
-	async getSBMTabel(id: number) {
-		const query = `
-			SELECT kolom_kategori, kolom_uraian, kolom_satuan, kolom_1, kolom_2, kolom_3, kolom_4, kolom_5 
-			FROM standar_biaya_masukan_tabel 
-			WHERE standar_biaya_masukan_id = ${id}
-		`;
-		const data = await this.prisma.$queryRawUnsafe(query);
-		return data[0];
-	}
-
-	async getPenjelasanSBM(tahun: string, id: number) {
-		const query = `
-			SELECT penjelasan
-			FROM standar_biaya_masukan_penjelasan
-			WHERE tahun = '${tahun}' AND id = ${id}
-		`;
-		const data = await this.prisma.$queryRawUnsafe(query);
-		return data[0];
-	}
-
-	async getPeraturanSBM(tahun: string) {
-		const query = `
-			SELECT * 
-			FROM peraturan 
-			WHERE nama LIKE '%Standar Biaya Masukan%${tahun}%' 
-		`;
-		const data = await this.prisma.$queryRawUnsafe(query);
-		return data[0];
-	}
-
-	async insertPenjelasanSBM(tahun: string, sbmId: number, penjelasan: string) {
-		const query = `
-			INSERT INTO standar_biaya_masukan_penjelasan (tahun, standar_biaya_masukan_id, penjelasan)
-			VALUES ('${tahun}', ${sbmId}, '${penjelasan}')
-		`;
-		const data = {
-			tahun: tahun,
-			standar_biaya_masukan_id: sbmId,
-			penjelasan: penjelasan,
-		};
-
-		await this.prisma.$executeRawUnsafe(query);
-		return { success: true, message: "Data berhasil ditambahkan", data: data };
-	}
-
-	async editPenjelasanSBM(id: number, penjelasan: string) {
-		const query = `
-			UPDATE standar_biaya_masukan_penjelasan
-			SET penjelasan = '${penjelasan}'
-			WHERE id = '${id}'
-		`;
-
-		const data = {
-			id: id,
-			penjelasan: penjelasan,
-		};
-
-		await this.prisma.$executeRawUnsafe(query);
-		return { sucess: true, message: "Data berhasil diperbarui", data: data };
-	}
+  async editPenjelasanSBM(id: number, penjelasan: string) {
+    const updatedPenjelasan =
+      await prisma.standar_biaya_masukan_penjelasan.update({
+        where: { id: id },
+        data: { penjelasan: penjelasan },
+      });
+    return {
+      success: true,
+      message: "Data berhasil diperbarui",
+      data: updatedPenjelasan,
+    };
+  }
 }

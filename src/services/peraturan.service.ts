@@ -1,19 +1,16 @@
-import { PrismaClient } from "@prisma/client";
+import prisma from "../lib/prisma";
 import type {
-	InsertPeraturanData,
-	Peraturan,
-	UpdatePeraturanData,
+  InsertPeraturanData,
+  UpdatePeraturanData,
 } from "../types/peraturan";
+import type { kategori_peraturan } from "@prisma/client";
 
 export class PeraturanService {
-	private prisma: PrismaClient;
-
-	constructor() {
-		this.prisma = new PrismaClient();
-	}
-
-	async getListPeraturan() {
-		const query = `
+  async getListPeraturan() {
+    // NOTE: Urutan custom yang kompleks seperti ini lebih mudah ditangani dengan query raw.
+    // Prisma Client API tidak secara langsung mendukung 'CASE' dalam 'orderBy'.
+    // Namun, kita menggantinya ke $queryRaw yang lebih aman daripada $queryRawUnsafe.
+    const query = `
       SELECT *
       FROM peraturan
      ORDER BY 
@@ -35,117 +32,75 @@ export class PeraturanService {
       END,
       tanggal_pengesahan DESC
     `;
+    try {
+      const peraturan = await prisma.$queryRawUnsafe(query);
+      return peraturan;
+    } catch (error) {
+      console.error("Gagal mengambil data:", error);
+      throw new Error("Gagal mengambil data peraturan");
+    }
+  }
 
-		try {
-			const peraturan = await this.prisma.$queryRawUnsafe(query);
-			return peraturan;
-		} catch (error) {
-			console.error("Gagal mengambil data:", error);
-			throw new Error("Gagal mengambil data");
-		}
-	}
+  async getPeraturanById(id: number) {
+    try {
+      return await prisma.peraturan.findUnique({
+        where: { id },
+      });
+    } catch (error) {
+      console.error("Gagal mengambil data:", error);
+      throw new Error("Gagal mengambil data peraturan by ID");
+    }
+  }
 
-	async getPeraturanById(id: number) {
-		const query = `SELECT * FROM peraturan WHERE id = ${id}`;
+  async getPeraturanBySlug(slug: string) {
+    try {
+      // Asumsikan slug adalah unik, jika tidak gunakan findFirst
+      return await prisma.peraturan.findFirst({
+        where: { slug },
+      });
+    } catch (error) {
+      console.error("Gagal mengambil data:", error);
+      throw new Error("Gagal mengambil data peraturan by slug");
+    }
+  }
 
-		try {
-			const peraturan: Peraturan[] = await this.prisma.$queryRawUnsafe(query);
-			return peraturan[0];
-		} catch (error) {
-			console.error("Gagal mengambil data:", error);
-			throw new Error("Gagal mengambil data");
-		}
-	}
+  async insertPeraturan(data: InsertPeraturanData) {
+    try {
+      const newPeraturan = await prisma.peraturan.create({
+        data: {
+          ...data,
+          kategori: data.kategori as kategori_peraturan,
+          berlaku: data.berlaku !== undefined ? data.berlaku : true,
+        },
+      });
+      return {
+        success: true,
+        message: "Data berhasil ditambahkan",
+        data: newPeraturan,
+      };
+    } catch (error) {
+      console.error("Gagal menambah data:", error);
+      throw new Error("Gagal menambah data peraturan");
+    }
+  }
 
-	async getPeraturanBySlug(slug: string) {
-		const query = "SELECT * FROM peraturan WHERE slug = $1";
-
-		const params = [slug];
-
-		try {
-			const peraturan: Peraturan[] = await this.prisma.$queryRawUnsafe(
-				query,
-				...params,
-			);
-			return peraturan[0];
-		} catch (error) {
-			console.error("Gagal mengambil data:", error);
-			throw new Error("Gagal mengambil data");
-		}
-	}
-
-	async insertPeraturan(data: InsertPeraturanData) {
-		// Set default value for `berlaku` if not provided
-		const berlakuValue = data.berlaku !== undefined ? data.berlaku : true;
-		// Tambahkan tanda kutip tunggal ke setiap elemen array
-		const kataKunciArray = data.kata_kunci.map(
-			(item: string) => `'${item.replace(/'/g, "''")}'`, // Escaping single quotes
-		);
-
-		const query = `
-        INSERT INTO peraturan (nama, tautan, tahun, berlaku, kata_kunci, slug, kategori, tanggal_pengesahan)
-        VALUES ($1, $2, $3, $4, ARRAY[${kataKunciArray.join(",")}], $5, $6::kategori_peraturan, $7::timestamp);
-    `;
-
-		const params = [
-			data.nama,
-			data.tautan,
-			data.tahun,
-			berlakuValue,
-			data.slug,
-			data.kategori,
-			data.tanggal_pengesahan,
-		];
-
-		// console.log("Query:", query); // Debugging query
-		// console.log("Params:", params); // Debugging parameters
-		await this.prisma.$queryRawUnsafe(query, ...params);
-		return { succes: true, message: "Data berhasil ditambahkan", data: data };
-	}
-
-	async updatePeraturan(id: number, data: UpdatePeraturanData) {
-		const kataKunciArray = data.kata_kunci.map((item: string) =>
-			item.replace(/'/g, ""),
-		);
-		const query = `
-      UPDATE peraturan
-      SET 
-        nama = $1,
-        tautan = $2,
-        tahun = $3,
-        berlaku = $4,
-        kata_kunci = string_to_array($5, ','),
-        slug = $6,
-        kategori = $7::kategori_peraturan,
-        tanggal_pengesahan = $8::timestamp
-      WHERE id = $9
-    `;
-		const formattedKataKunci = kataKunciArray.join(",");
-		const params = [
-			data.nama,
-			data.tautan,
-			data.tahun,
-			data.berlaku,
-			formattedKataKunci,
-			data.slug,
-			data.kategori,
-			data.tanggal_pengesahan,
-			id,
-		];
-
-		// console.log(query);
-
-		await this.prisma.$queryRawUnsafe(query, ...params);
-
-		// Fetch updated data
-		const updatedData = await this.prisma.$queryRaw`
-      SELECT * FROM peraturan WHERE id = ${id}
-    `;
-
-		return {
-			success: true,
-			message: "Data berhasil diperbarui",
-			data: updatedData[0],
-		};
-	}
+  async updatePeraturan(id: number, data: UpdatePeraturanData) {
+    try {
+      const updatedPeraturan = await prisma.peraturan.update({
+        where: { id },
+        data: {
+          ...data,
+          kategori: data.kategori as kategori_peraturan,
+        },
+      });
+      return {
+        success: true,
+        message: "Data berhasil diperbarui",
+        data: updatedPeraturan,
+      };
+    } catch (error) {
+      console.error("Gagal memperbarui data:", error);
+      throw new Error("Gagal memperbarui data peraturan");
+    }
+  }
 }
